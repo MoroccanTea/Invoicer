@@ -33,11 +33,7 @@ const ClientForm = () => {
 
   const fetchClient = async () => {
     try {
-      const response = await api.get(`/clients/${id}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch client');
-      }
-      const data = await response.json();
+      const data = await api.get(`/clients/${id}`);
       setFormData(data);
     } catch (error) {
       console.error('Error fetching client:', error);
@@ -64,18 +60,10 @@ const ClientForm = () => {
         address: formData.address
       };
   
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(dataToSend)
-      });
-  
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to save client');
+      if (id) {
+        await api.patch(url, dataToSend);
+      } else {
+        await api.post(url, dataToSend);
       }
   
       toast.success(`Client ${id ? 'updated' : 'created'} successfully`);

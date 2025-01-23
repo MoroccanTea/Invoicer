@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import toast from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
+import api from '../../utils/api';
 
 const ProjectForm = () => {
   const { id } = useParams();
@@ -28,13 +29,7 @@ const ProjectForm = () => {
 
   const fetchClients = async () => {
     try {
-      const response = await fetch('/api/v1/clients', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      if (!response.ok) throw new Error('Failed to fetch clients');
-      const data = await response.json();
+      const data = await api.get('/clients');
       setClients(data);
     } catch (error) {
       toast.error('Error loading clients');
@@ -48,13 +43,7 @@ const ProjectForm = () => {
   
   const fetchProject = async () => {
     try {
-      const response = await fetch(`/api/v1/projects/${id}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      if (!response.ok) throw new Error('Failed to fetch project');
-      const data = await response.json();
+      const data = await api.get(`/projects/${id}`);
       
       // Format the dates properly
       setFormData({
@@ -72,19 +61,11 @@ const ProjectForm = () => {
     setLoading(true);
 
     try {
-      const url = id ? `/api/v1/projects/${id}` : '/api/v1/projects';
-      const method = id ? 'PATCH' : 'POST';
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(formData)
-      });
-
-      if (!response.ok) throw new Error('Failed to save project');
+      if (id) {
+        await api.patch(`/projects/${id}`, formData);
+      } else {
+        await api.post('/projects', formData);
+      }
       
       toast.success(`Project ${id ? 'updated' : 'created'} successfully`);
       navigate('/projects');

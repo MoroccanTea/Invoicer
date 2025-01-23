@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-hot-toast';
+import api from '../../utils/api';
 
 const InvoiceList = () => {
   const [invoices, setInvoices] = useState([]);
@@ -11,12 +12,7 @@ const InvoiceList = () => {
   useEffect(() => {
     const fetchInvoices = async () => {
       try {
-        const response = await fetch('/api/v1/invoices', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        const data = await response.json();
+        const data = await api.get('/invoices');
         setInvoices(data);
       } catch (error) {
         console.error('Error fetching invoices:', error);

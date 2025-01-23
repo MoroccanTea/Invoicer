@@ -1,6 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -30,9 +29,8 @@ import ConfigurationForm from './components/settings/ConfigurationForm';
 
 function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <Toaster
+    <>
+      <Toaster
           position="top-right"
           toastOptions={{
             duration: 3000,
@@ -87,8 +85,7 @@ function App() {
           {/* Catch all */}
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
-      </AuthProvider>
-    </Router>
+    </>
   );
 }
 

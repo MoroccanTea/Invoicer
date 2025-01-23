@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import toast from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
 import api from '../../utils/api';
 
 const ConfigurationForm = () => {
@@ -44,11 +44,7 @@ const ConfigurationForm = () => {
 
   const fetchConfig = async () => {
     try {
-      const response = await api.get(`/configs`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch configuration');
-      }
-      const data = await response.json();
+      const data = await api.get('/configs');
       setFormData({
         ...data,
         businessInfo: {
@@ -118,33 +114,23 @@ const ConfigurationForm = () => {
         throw new Error('All categories must have a name and code');
       }
   
-      const response = await fetch('/api/v1/configs', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          defaultTaxRate: parseFloat(formData.defaultTaxRate),
-          currency: formData.currency,
-          categories: formData.categories,
-          allowRegistration: formData.allowRegistration,
-          businessInfo: {
-            CNIE: formData.businessInfo.CNIE || '',
-            IF: formData.businessInfo.IF || '',
-            taxeProfessionnelle: formData.businessInfo.taxeProfessionnelle || '',
-            ICE: formData.businessInfo.ICE || '',
-            telephone: formData.businessInfo.telephone || '',
-            website: formData.businessInfo.website || '',
-            email: formData.businessInfo.email || ''
-          }
-        })
-      });
-  
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to save configuration');
-      }
+      const dataToSend = {
+        defaultTaxRate: parseFloat(formData.defaultTaxRate),
+        currency: formData.currency,
+        categories: formData.categories,
+        allowRegistration: formData.allowRegistration,
+        businessInfo: {
+          CNIE: formData.businessInfo.CNIE || '',
+          IF: formData.businessInfo.IF || '',
+          taxeProfessionnelle: formData.businessInfo.taxeProfessionnelle || '',
+          ICE: formData.businessInfo.ICE || '',
+          telephone: formData.businessInfo.telephone || '',
+          website: formData.businessInfo.website || '',
+          email: formData.businessInfo.email || ''
+        }
+      };
+
+      await api.patch('/configs', dataToSend);
   
       toast.success('Configuration saved successfully');
     } catch (error) {

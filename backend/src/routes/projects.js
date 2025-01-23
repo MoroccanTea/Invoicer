@@ -57,7 +57,7 @@ router.patch('/:id', auth, async (req, res) => {
       { _id: req.params.id, owner: req.user._id },
       req.body,
       { new: true, runValidators: true }
-    );
+    ).populate('client');
 
     if (!project) {
       return res.status(404).json({ error: 'Project not found' });

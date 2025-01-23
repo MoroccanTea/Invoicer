@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import api from '../utils/api';
 
 const AuthContext = createContext(null);
 
@@ -29,17 +30,7 @@ export const AuthProvider = ({ children }) => {
       if (!token) return;
       
       try {
-        const response = await fetch('/api/v1/auth/verify', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        
-        if (!response.ok) {
-          throw new Error('Token verification failed');
-        }
-
-        const data = await response.json();
+        const data = await api.get('/auth/verify');
         setUser(data.user);
       } catch (error) {
         console.error('Token verification failed:', error);

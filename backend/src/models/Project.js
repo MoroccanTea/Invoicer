@@ -23,6 +23,10 @@ const projectSchema = new mongoose.Schema({
       required: true,
       enum: ['TEACHING', 'DEVELOPMENT', 'CONSULTING', 'PENTESTING'].map(cat => cat.toLowerCase()),
     },
+    rate: {
+      type: Number,
+      default: 0
+    },
     template: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Template',

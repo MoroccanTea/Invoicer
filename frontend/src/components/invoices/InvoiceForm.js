@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import toast from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
+import api from '../../utils/api';
 
 const InvoiceForm = () => {
   const { id } = useParams();
@@ -13,14 +14,20 @@ const InvoiceForm = () => {
   const [selectedProject, setSelectedProject] = useState(null);
   const [formData, setFormData] = useState({
     project: '',
-    items: [{ description: '', quantity: 1, rate: 0, amount: 0 }],
+    items: [{
+      description: 'Professional Services',
+      quantity: 1,
+      rate: 0,
+      amount: 0
+    }],
     subtotal: 0,
     taxRate: 0,
     taxAmount: 0,
     total: 0,
     status: 'draft',
     invoiceDate: new Date().toISOString().split('T')[0],
-    dueDate: '',
+    // Set default due date to 30 days from now
+    dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     notes: ''
   });
 
@@ -34,13 +41,7 @@ const InvoiceForm = () => {
 
   const fetchProjects = async () => {
     try {
-      const response = await fetch('/api/v1/projects', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      if (!response.ok) throw new Error('Failed to fetch projects');
-      const data = await response.json();
+      const data = await api.get('/projects');
       setProjects(data);
     } catch (error) {
       toast.error('Error loading projects');
@@ -49,12 +50,7 @@ const InvoiceForm = () => {
 
   const fetchConfig = async () => {
     try {
-      const response = await fetch('/api/v1/configs', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      const data = await response.json();
+      const data = await api.get('/configs');
       setConfig(data);
       if (!id) {
         // Set default tax rate for new invoices
@@ -71,12 +67,7 @@ const InvoiceForm = () => {
 
   const fetchInvoice = async () => {
     try {
-      const response = await fetch(`/api/v1/invoices/${id}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      const data = await response.json();
+      const data = await api.get(`/invoices/${id}`);
       setFormData(data);
     } catch (error) {
       console.error('Error fetching invoice:', error);
@@ -87,66 +78,108 @@ const InvoiceForm = () => {
   const handleProjectChange = (projectId) => {
     const project = projects.find(p => p._id === projectId);
     setSelectedProject(project);
-    setFormData(prev => ({
-      ...prev,
-      project: projectId,
-      items: [{
+    
+    const rate = parseFloat(project.rate || 0);
+    const quantity = 1;
+    const amount = rate * quantity;
+    
+    setFormData(prev => {
+      const items = [{
         description: `${project.title} - Professional Services`,
-        quantity: 1,
-        rate: project.rate || 0,
-        amount: project.rate || 0
-      }]
-    }));
+        quantity,
+        rate,
+        amount
+      }];
+      
+      const subtotal = amount;
+      const taxRate = parseFloat(prev.taxRate || 0);
+      const taxAmount = subtotal * (taxRate / 100);
+      const total = subtotal + taxAmount;
+      
+      return {
+        ...prev,
+        project: projectId,
+        items,
+        subtotal,
+        taxAmount,
+        total
+      };
+    });
   };
 
   const updateItem = (index, field, value) => {
     const newItems = [...formData.items];
+    
+    // Update the field
     newItems[index] = {
       ...newItems[index],
       [field]: value
     };
-  
-    // Recalculate amount for the item
+    
+    // Ensure numeric values
     if (field === 'quantity' || field === 'rate') {
-      newItems[index].amount = (
-        parseFloat(newItems[index].quantity || 0) * 
-        parseFloat(newItems[index].rate || 0)
-      );
+      newItems[index].quantity = parseFloat(newItems[index].quantity || 0);
+      newItems[index].rate = parseFloat(newItems[index].rate || 0);
+      // Recalculate amount
+      newItems[index].amount = newItems[index].quantity * newItems[index].rate;
     }
-  
+    
     // Recalculate totals
-    const subtotal = newItems.reduce((sum, item) => sum + (item.amount || 0), 0);
-    const taxAmount = subtotal * (parseFloat(formData.taxRate || 0) / 100);
+    const subtotal = newItems.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+    const taxRate = parseFloat(formData.taxRate || 0);
+    const taxAmount = subtotal * (taxRate / 100);
     const total = subtotal + taxAmount;
-  
-    setFormData({
-      ...formData,
+    
+    setFormData(prev => ({
+      ...prev,
       items: newItems,
       subtotal,
+      taxRate,
       taxAmount,
       total
-    });
+    }));
   };
 
   const addItem = () => {
-    setFormData({
-      ...formData,
-      items: [...formData.items, { description: '', quantity: 1, rate: 0, amount: 0 }]
+    const newItem = {
+      description: 'Professional Services',
+      quantity: 1,
+      rate: 0,
+      amount: 0
+    };
+    
+    setFormData(prev => {
+      const newItems = [...prev.items, newItem];
+      const subtotal = newItems.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+      const taxRate = parseFloat(prev.taxRate || 0);
+      const taxAmount = subtotal * (taxRate / 100);
+      const total = subtotal + taxAmount;
+      
+      return {
+        ...prev,
+        items: newItems,
+        subtotal,
+        taxAmount,
+        total
+      };
     });
   };
 
   const removeItem = (index) => {
-    const newItems = formData.items.filter((_, i) => i !== index);
-    const subtotal = newItems.reduce((sum, item) => sum + item.amount, 0);
-    const taxAmount = subtotal * (formData.taxRate / 100);
-    const total = subtotal + taxAmount;
+    setFormData(prev => {
+      const newItems = prev.items.filter((_, i) => i !== index);
+      const subtotal = newItems.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+      const taxRate = parseFloat(prev.taxRate || 0);
+      const taxAmount = subtotal * (taxRate / 100);
+      const total = subtotal + taxAmount;
 
-    setFormData({
-      ...formData,
-      items: newItems,
-      subtotal,
-      taxAmount,
-      total
+      return {
+        ...prev,
+        items: newItems,
+        subtotal,
+        taxAmount,
+        total
+      };
     });
   };
 
@@ -173,26 +206,15 @@ const InvoiceForm = () => {
         taxRate,
         taxAmount,
         total,
-        invoiceDate: formData.invoiceDate || new Date().toISOString().split('T')[0],
-        dueDate: formData.dueDate
+        invoiceDate: new Date(formData.invoiceDate),
+        dueDate: new Date(formData.dueDate),
+        currency: config.currency // Include user's currency configuration
       };
   
-      const url = id ? `/api/v1/invoices/${id}` : '/api/v1/invoices';
-      const method = id ? 'PATCH' : 'POST';
-  
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(dataToSend)
-      });
-  
-      const responseData = await response.json();
-  
-      if (!response.ok) {
-        throw new Error(responseData.error || 'Failed to save invoice');
+      if (id) {
+        await api.patch(`/invoices/${id}`, dataToSend);
+      } else {
+        await api.post('/invoices', dataToSend);
       }
   
       toast.success(`Invoice ${id ? 'updated' : 'created'} successfully`);
@@ -227,7 +249,7 @@ const InvoiceForm = () => {
               <option value="">Select a project</option>
               {projects.map((project) => (
                 <option key={project._id} value={project._id}>
-                  {project.title} - {project.client}
+                  {project.title} - {project.client?.name}
                 </option>
               ))}
             </select>
@@ -237,7 +259,7 @@ const InvoiceForm = () => {
           {selectedProject && (
             <div className="bg-gray-50 p-4 rounded-md">
               <h3 className="font-medium text-gray-700">Project Details</h3>
-              <p className="text-sm text-gray-600">Client: {selectedProject.client}</p>
+              <p className="text-sm text-gray-600">Client: {selectedProject.client?.name}</p>
               <p className="text-sm text-gray-600">Category: {selectedProject.category}</p>
             </div>
           )}

@@ -12,8 +12,7 @@ const ClientList = () => {
   useEffect(() => {
     const fetchClients = async () => {
       try {
-        const response = await api.get(`/clients`);
-        const data = await response.json();
+        const data = await api.get(`/clients`);
         setClients(data);
       } catch (error) {
         console.error('Error fetching clients:', error);
@@ -35,12 +34,7 @@ const ClientList = () => {
     }
 
     try {
-      const response = await api.delete(`/clients/${clientId}`);
-
-      if (!response.ok) {
-        throw new Error('Failed to delete client');
-      }
-
+      await api.delete(`/clients/${clientId}`);
       toast.success('Client deleted successfully');
       // Update the clients list
       setClients(clients.filter(client => client._id !== clientId));

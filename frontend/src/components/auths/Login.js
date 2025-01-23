@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import api from '../../utils/api';
+import toast from 'react-hot-toast';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -19,11 +21,12 @@ const Login = () => {
     e.preventDefault();
     
     try {
-      await login(formData.email, formData.password);
+      const response = await api.post('/auth/login', formData);
+      login(response.user, response.token);
       navigate('/dashboard');
     } catch (err) {
-      // Error is handled by AuthContext
       console.error('Login error:', err);
+      toast.error('Login failed. Please check your credentials.');
     }
   };
 

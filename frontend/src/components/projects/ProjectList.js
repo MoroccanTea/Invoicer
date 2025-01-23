@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import toast from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
+import api from '../../utils/api';
 
 const ProjectList = () => {
   const [projects, setProjects] = useState([]);
@@ -14,13 +15,7 @@ const ProjectList = () => {
 
   const fetchProjects = async () => {
     try {
-      const response = await fetch('/api/v1/projects', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      if (!response.ok) throw new Error('Failed to fetch projects');
-      const data = await response.json();
+      const data = await api.get('/projects');
       setProjects(data);
     } catch (error) {
       console.error('Error loading projects:', error);
@@ -34,15 +29,7 @@ const ProjectList = () => {
     if (!window.confirm('Are you sure you want to delete this project?')) return;
 
     try {
-      const response = await fetch(`/api/v1/projects/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) throw new Error('Failed to delete project');
-
+      await api.delete(`/projects/${id}`);
       toast.success('Project deleted successfully');
       fetchProjects();
     } catch (error) {
@@ -75,7 +62,7 @@ const ProjectList = () => {
               {project.client?.name || 'No client assigned'}
               {project.client?.company && ` (${project.client.company})`}
             </p>
-            <div className="mt-2">
+            <div className="mt-2 space-y-2">
               <span className={`px-2 py-1 rounded text-sm ${project.status === 'completed' ? 'bg-green-100 text-green-800' :
                   project.status === 'in-progress' ? 'bg-blue-100 text-blue-800' :
                     project.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
@@ -83,6 +70,20 @@ const ProjectList = () => {
                 }`}>
                 {project.status}
               </span>
+              <div className="mt-4 flex space-x-4">
+                <Link
+                  to={`/projects/${project._id}/edit`}
+                  className="text-blue-600 hover:text-blue-800"
+                >
+                  Edit
+                </Link>
+                <button
+                  onClick={() => handleDeleteProject(project._id)}
+                  className="text-red-600 hover:text-red-800"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           </div>
         ))}

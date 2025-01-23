@@ -95,6 +95,19 @@ invoiceSchema.pre('save', async function(next) {
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const year = date.getFullYear();
       
+      // Get project category
+      const Project = mongoose.model('Project');
+      const project = await Project.findById(this.project);
+      if (!project) {
+        throw new Error('Project not found');
+      }
+      // Get category and ensure it's valid
+      if (!project.category) {
+        throw new Error('Project category is required');
+      }
+      // Use uppercase for invoice number but preserve original case in project
+      const activity = project.category.toUpperCase();
+      
       const counter = await Counter.findByIdAndUpdate(
         { _id: `${month}-${year}-${activity}` },
         { $inc: { seq: 1 } },

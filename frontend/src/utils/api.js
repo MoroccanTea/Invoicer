@@ -10,7 +10,7 @@ const createApiClient = () => {
     const handleResponse = async (response) => {
       if (!response.ok) {
         const error = await response.json().catch(() => ({ error: 'An error occurred' }));
-        throw new Error(error.message || 'Request failed');
+        throw new Error(error.error || error.message || 'Request failed');
       }
       return response.json();
     };

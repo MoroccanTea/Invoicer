@@ -61,12 +61,20 @@ router.post('/', auth, async (req, res) => {
   } catch (error) {
     console.error('Invoice creation error:', error);
     let errorMessage = 'Error creating invoice';
+    let statusCode = 400;
+
     if (error.name === 'ValidationError') {
       errorMessage = Object.values(error.errors)
         .map(err => err.message)
         .join(', ');
+    } else if (error.code === 11000) {
+      errorMessage = 'Duplicate invoice number detected';
+    } else if (error.message === 'Project not found' || error.message === 'Invalid project category') {
+      statusCode = 404;
+      errorMessage = error.message;
     }
-    res.status(400).json({ error: errorMessage });
+
+    res.status(statusCode).json({ error: errorMessage });
   }
 });
 
@@ -92,7 +100,12 @@ router.get('/:id', auth, async (req, res) => {
     const invoice = await Invoice.findOne({
       _id: req.params.id,
       owner: req.user._id
-    }).populate('project').populate('client');
+    }).populate({
+      path: 'project',
+      populate: {
+        path: 'client'
+      }
+    });
     
     if (!invoice) {
       return res.status(404).json({ error: 'Invoice not found' });
