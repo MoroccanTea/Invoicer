@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Counter = require('./Counter');
 
 const invoiceItemSchema = new mongoose.Schema({
   description: {
@@ -90,7 +91,6 @@ const invoiceSchema = new mongoose.Schema({
 invoiceSchema.pre('save', async function(next) {
   if (this.isNew) {
     try {
-      const Counter = mongoose.model('Counter');
       const date = new Date();
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const year = date.getFullYear();

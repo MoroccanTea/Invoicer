@@ -13,7 +13,10 @@ const Layout = () => {
     { name: 'Projects', path: '/projects' },
     { name: 'Invoices', path: '/invoices' },
     { name: 'Clients', path: '/clients' },
-    ...(user?.role === 'admin' ? [{ name: 'Configuration', path: '/configuration' }] : [])
+    ...(user?.role === 'admin' ? [
+      { name: 'Configuration', path: '/configuration' },
+      { name: 'Users', path: '/users' }
+    ] : [])
   ];
 
   const handleLogout = () => {

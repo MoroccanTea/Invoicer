@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminRoute from './components/AdminRoute';
 
 // Auth Components
 import Login from './components/auths/Login';
@@ -25,6 +26,10 @@ import ClientForm from './components/clients/ClientForm';
 
 // Configuration Component
 import ConfigurationForm from './components/settings/ConfigurationForm';
+
+// User Management Components
+import UserList from './components/users/UserList';
+import UserForm from './components/users/UserForm';
 
 
 function App() {
@@ -80,6 +85,13 @@ function App() {
 
             {/* Settings route */}
             <Route path="configuration" element={<ConfigurationForm />} />
+
+            {/* User Management routes (Admin only) */}
+            <Route path="users">
+              <Route index element={<AdminRoute><UserList /></AdminRoute>} />
+              <Route path="new" element={<AdminRoute><UserForm /></AdminRoute>} />
+              <Route path="edit/:id" element={<AdminRoute><UserForm /></AdminRoute>} />
+            </Route>
           </Route>
 
           {/* Catch all */}

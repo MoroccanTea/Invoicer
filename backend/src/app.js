@@ -26,6 +26,7 @@ apiV1Router.use('/clients', require('./routes/clients'));
 apiV1Router.use('/configs', require('./routes/configs'));
 apiV1Router.use('/stats', require('./routes/stats'));
 apiV1Router.use('/auth', require('./routes/auth'));
+apiV1Router.use('/users', require('./routes/users'));
 
 // Mount v1 routes
 app.use('/api/v1', apiV1Router);
