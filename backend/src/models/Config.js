@@ -1,29 +1,19 @@
 const mongoose = require('mongoose');
 
 const configSchema = new mongoose.Schema({
-  owner: {
-    type: mongoose.Schema.Types.ObjectId,
-    required: true,
-    ref: 'User'
-  },
   allowRegistration: {
     type: Boolean,
     default: true
   },
-  businessInfo: {
-    CNIE: String,
-    IF: String,
-    taxeProfessionnelle: String,
-    ICE: String,
-    telephone: String,
-    website: String,
-    email: String
+  invoicePrefix: {
+    type: String,
+    default: 'INV'
   },
-  defaultTaxRate: {
+  taxRate: {
     type: Number,
-    default: 0,
+    default: 0.2,
     min: 0,
-    max: 100
+    max: 1
   },
   currency: {
     code: {
@@ -35,14 +25,14 @@ const configSchema = new mongoose.Schema({
       default: '$'
     }
   },
-  categories: [{
+  businessInfo: {
     name: String,
-    code: String
-  }]
+    address: String,
+    email: String,
+    phone: String
+  }
 }, {
   timestamps: true
 });
 
-const Config = mongoose.model('Config', configSchema);
-
-module.exports = Config;
+module.exports = mongoose.model('Config', configSchema);

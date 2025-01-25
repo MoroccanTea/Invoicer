@@ -1,6 +1,7 @@
 const createApiClient = () => {
     const getToken = () => localStorage.getItem('token');
     const baseURL = '/api/v1';
+    // Ensure baseURL has single /api/v1 prefix
   
     const getHeaders = () => ({
       'Content-Type': 'application/json',

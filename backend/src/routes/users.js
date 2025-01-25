@@ -44,28 +44,27 @@ router.post('/', auth, adminAuth, async (req, res) => {
 // Update user (admin only)
 router.put('/:id', auth, adminAuth, async (req, res) => {
   try {
-    const updates = req.body;
-    const user = await User.findById(req.params.id);
+    const allowedUpdates = ['name', 'email', 'role'];
+    const updates = {};
     
+    // Filter allowed updates
+    Object.keys(req.body).forEach(key => {
+      if (allowedUpdates.includes(key)) {
+        updates[key] = req.body[key];
+      }
+    });
+
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      updates,
+      { new: true, runValidators: true }
+    ).select('-password');
+
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Handle password update separately to ensure proper hashing
-    if (updates.password) {
-      user.password = updates.password;
-    }
-    delete updates.password;
-
-    // Update other fields
-    Object.keys(updates).forEach(update => {
-      user[update] = updates[update];
-    });
-
-    await user.save();
-    const userWithoutPassword = user.toObject();
-    delete userWithoutPassword.password;
-    res.json(userWithoutPassword);
+    res.json(user);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }

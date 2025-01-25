@@ -4,10 +4,13 @@ const auth = require('../middlewares/auth');
 const adminAuth = require('../middlewares/adminAuth');
 const Config = require('../models/Config');
 
+// Redirect legacy singular endpoint to plural
+router.get('/config', (req, res) => res.redirect(301, './configs'));
+
 // Load Config 
-router.get('/', auth, async (req, res) => {
+router.get('/', require('../middlewares/loadConfig'), async (req, res) => { // Main plural endpoint
   try {
-    const config = await Config.findOne({ owner: req.user._id });
+    const config = req.config;
     if (!config) {
       // Return default config if none exists
       return res.json({
@@ -32,8 +35,12 @@ router.get('/', auth, async (req, res) => {
     }
     res.json(config);
   } catch (error) {
-    console.error('Config fetch error:', error);
-    res.status(500).json({ error: 'Error fetching configuration' });
+    console.error('Config fetch error for user %s:', req.user?._id, error);
+    res.status(500).json({ 
+      error: 'Error fetching configuration',
+      details: error.message,
+      allowRegistration: true // Ensure fallback value in error response
+    });
   }
 });
 
@@ -43,6 +50,7 @@ router.patch('/', auth, adminAuth, async (req, res) => {
   try {
     const updates = Object.keys(req.body);
     const allowedUpdates = ['defaultTaxRate', 'currency', 'categories', 'allowRegistration', 'businessInfo'];
+    const currencyUpdates = ['code', 'symbol'];
     const isValidOperation = updates.every(update => allowedUpdates.includes(update));
 
     if (!isValidOperation) {
@@ -55,8 +63,13 @@ router.patch('/', auth, adminAuth, async (req, res) => {
     }
 
     // Handle nested updates
+    // Validate currency structure
+    if (req.body.currency && (!req.body.currency.code || !req.body.currency.symbol)) {
+      return res.status(400).json({ error: 'Currency must contain both code and symbol' });
+    }
+
     updates.forEach(update => {
-      if (update === 'businessInfo' || update === 'currency') {
+      if (update === 'businessInfo') {
         config[update] = {
           ...config[update],
           ...req.body[update]

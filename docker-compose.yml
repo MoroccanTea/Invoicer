@@ -1,7 +1,7 @@
 services:
   mongodb:
     image: mongo:latest
-    container_name: mongodb
+    container_name: invoicer_mongodb
     restart: always
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
@@ -15,13 +15,14 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: backend
+    container_name: invoicer_backend
     restart: always
     environment:
       - NODE_ENV=production
       - MONGODB_URI=mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASSWORD}@mongodb:27017
       - JWT_SECRET=${JWT_SECRET}
       - PORT=5000
+      - REDIS_URL=redis://redis:6379
     ports:
       - "5000:5000"
     depends_on:
@@ -31,12 +32,22 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: frontend
+    container_name: invoicer_frontend
     restart: always
     ports:
-      - "3000:80"
+      - "80:80"
     depends_on:
       - backend
 
+  redis:
+    image: redis:alpine
+    container_name: invoicer_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
 volumes:
   mongodb_data:
+  redis_data:

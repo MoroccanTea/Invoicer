@@ -34,10 +34,16 @@ const InvoiceForm = () => {
   useEffect(() => {
     fetchProjects();
     fetchConfig();
-    if (id) {
-      fetchInvoice();
+  }, []);
+
+  useEffect(() => {
+    if (id && projects.length > 0) {
+      const loadData = async () => {
+        await fetchInvoice();
+      };
+      loadData();
     }
-  }, [id]);
+  }, [id, projects]);
 
   const fetchProjects = async () => {
     try {
@@ -68,7 +74,27 @@ const InvoiceForm = () => {
   const fetchInvoice = async () => {
     try {
       const data = await api.get(`/invoices/${id}`);
-      setFormData(data);
+      // Fetch project directly to ensure we have it
+      const projectData = await api.get(`/projects/${data.project._id}`);
+      
+      // Ensure project exists in projects list using functional update
+      setProjects(prev => {
+        if (!prev.some(p => p._id === projectData._id)) {
+          return [...prev, projectData];
+        }
+        return prev;
+      });
+
+      // Set form data first to ensure project ID is available
+      setFormData(prev => ({
+        ...prev,
+        ...data,
+        project: projectData._id,
+        invoiceDate: new Date(data.invoiceDate).toISOString().split('T')[0],
+        dueDate: new Date(data.dueDate).toISOString().split('T')[0]
+      }));
+
+      setSelectedProject(projectData);
     } catch (error) {
       console.error('Error fetching invoice:', error);
       toast.error(error.message || 'Error loading invoice');
@@ -84,7 +110,8 @@ const InvoiceForm = () => {
     const amount = rate * quantity;
     
     setFormData(prev => {
-      const items = [{
+      // Preserve existing items when editing
+      const items = id ? prev.items : [{
         description: `${project.title} - Professional Services`,
         quantity,
         rate,
@@ -271,25 +298,28 @@ const InvoiceForm = () => {
               <button
                 type="button"
                 onClick={addItem}
-                className="text-sm text-indigo-600 hover:text-indigo-900"
+                className="text-sm text-indigo-600 hover:text-indigo-900 flex items-center gap-1 px-3 py-1.5 rounded-md border border-indigo-200 hover:border-indigo-300 bg-indigo-50 hover:bg-indigo-100 transition-colors"
               >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
+                </svg>
                 Add Item
               </button>
             </div>
             <div className="space-y-4">
               {formData.items.map((item, index) => (
-                <div key={index} className="grid grid-cols-12 gap-4 items-start">
-                  <div className="col-span-6">
+                <div key={index} className="grid grid-cols-1 md:grid-cols-12 gap-x-4 gap-y-2 items-center mb-4 px-2 py-3 hover:bg-gray-50 rounded-md group">
+                  <div className="md:col-span-5">
                     <input
                       type="text"
                       value={item.description}
                       onChange={(e) => updateItem(index, 'description', e.target.value)}
                       placeholder="Description"
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
                       required
                     />
                   </div>
-                  <div className="col-span-2">
+                  <div className="md:col-span-2">
                     <label className="block text-xs font-medium text-gray-700">Quantity</label>
                     <input
                       type="number"
@@ -297,11 +327,11 @@ const InvoiceForm = () => {
                       onChange={(e) => updateItem(index, 'quantity', parseFloat(e.target.value))}
                       min="0"
                       step="0.25"
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
                       required
                     />
                   </div>
-                  <div className="col-span-2">
+                  <div className="md:col-span-2">
                     <label className="block text-xs font-medium text-gray-700">Rate</label>
                     <input
                       type="number"
@@ -309,21 +339,56 @@ const InvoiceForm = () => {
                       onChange={(e) => updateItem(index, 'rate', parseFloat(e.target.value))}
                       min="0"
                       step="0.01"
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
                       required
                     />
                   </div>
-                  <div className="col-span-1">
-                    <label className="block text-xs font-medium text-gray-700">Amount</label>
-                    <div className="mt-1 text-gray-900">{config.currency.symbol}{item.amount.toFixed(2)}</div>
-                  </div>
-                  <div className="col-span-1">
+                  <div className="md:col-span-3 flex items-center gap-4 justify-end">
+                    <div className="min-w-[90px] text-right">
+                      <label className="block text-xs font-medium text-gray-700">Amount</label>
+                      <div className="mt-1 text-sm font-medium text-gray-900 truncate">
+                        {config.currency.symbol}{item.amount.toFixed(2)}
+                      </div>
+                    </div>
+                    <div className="w-px h-6 bg-gray-200 mr-2"></div>
                     <button
                       type="button"
-                      onClick={() => removeItem(index)}
-                      className="mt-6 text-red-600 hover:text-red-900"
+                      onClick={() => {
+                        toast.custom((t) => (
+                          <div className={`${t.visible ? 'animate-enter' : 'animate-leave'} 
+                            fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center p-4`}>
+                            <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full" key={t.id}>
+                              <h3 className="font-medium text-gray-900 mb-2">Confirm Deletion</h3>
+                              <p className="text-sm text-gray-600">
+                                Are you sure you want to delete this item?
+                              </p>
+                              <div className="mt-4 flex justify-end gap-2">
+                                <button
+                                  onClick={() => toast.dismiss(t.id)}
+                                  className="px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 rounded-md"
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    toast.dismiss(t.id);
+                                    removeItem(index);
+                                  }}
+                                  className="px-3 py-1.5 text-sm text-red-700 hover:bg-red-50 rounded-md"
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ), { duration: Infinity });
+                      }}
+                      className="text-red-600 hover:text-red-900 p-1.5 rounded-full hover:bg-red-50 transition-colors"
+                      title="Remove item"
                     >
-                      Remove
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
                     </button>
                   </div>
                 </div>
@@ -419,21 +484,69 @@ const InvoiceForm = () => {
             </div>
           </div>
 
-          <div className="flex justify-end space-x-4">
-            <button
-              type="button"
-              onClick={() => navigate('/invoices')}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              {loading ? 'Saving...' : 'Save Invoice'}
-            </button>
+          <div className="flex justify-between">
+            <div>
+              {id && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    toast.custom((t) => (
+                      <div className={`${t.visible ? 'animate-enter' : 'animate-leave'} 
+                        fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center p-4`}>
+                      <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200 w-full max-w-md">
+                        <h3 className="font-medium text-gray-900 mb-2">Confirm Deletion</h3>
+                        <p className="text-sm text-gray-600">
+                          Are you sure you want to delete this invoice? This action cannot be undone.
+                        </p>
+                        <div className="mt-4 flex justify-end gap-2">
+                          <button
+                            onClick={() => toast.dismiss(t.id)}
+                            className="px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 rounded-md border border-gray-300"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => {
+                              toast.dismiss(t.id);
+                              const deleteToast = toast.loading('Deleting invoice...');
+                              api.delete(`/invoices/${id}`)
+                                .then(() => {
+                                  toast.success('Invoice deleted successfully');
+                                  navigate('/invoices');
+                                })
+                                .catch(error => {
+                                  toast.error(error.message || 'Failed to delete invoice');
+                                  console.error('Delete error:', error);
+                                })
+                                .finally(() => toast.dismiss(deleteToast));
+                            }}
+                            className="px-3 py-1.5 text-sm text-white bg-red-600 hover:bg-red-700 rounded-md border border-red-700"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    ), { duration: Infinity });
+                  }}
+                  className="px-4 py-2 text-sm font-medium text-red-600 hover:text-red-900 flex items-center gap-1"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  Delete Invoice
+                </button>
+              )}
+            </div>
+            <div className="flex gap-4">
+              <button
+                type="submit"
+                disabled={loading}
+                className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                {loading ? 'Saving...' : 'Save Invoice'}
+              </button>
+            </div>
           </div>
       </form>
     </div>

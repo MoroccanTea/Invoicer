@@ -15,7 +15,7 @@ const UserList = () => {
   const fetchUsers = async () => {
     try {
       const response = await api.get('/users');
-      setUsers(response.data);
+      setUsers(response);
       setLoading(false);
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to fetch users');

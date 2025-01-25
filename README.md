@@ -1,102 +1,158 @@
-# Invoicer 💼
+# Invoicer - Professional Billing Management System
 
-![Node.js](https://img.shields.io/badge/Node.js-18.x-green)
-![React](https://img.shields.io/badge/React-18.x-blue)
-![MongoDB](https://img.shields.io/badge/MongoDB-7.x-green)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A full-stack invoicing application with client/project management capabilities, featuring:
-- **Multi-role authentication** (Admin/User)
-- **CRUD operations** for clients, projects, and invoices
-- **PDF invoice generation**
-- **Responsive dashboard** with analytics
-- **Dockerized** development/production setup
+A complete invoice management solution with client tracking, project management, and financial reporting capabilities.
 
-## Features ✨
-- 🛡️ JWT-based authentication & authorization
-- 📊 Dashboard with financial overview
-- 📁 Client/project management system
-- 🧾 Customizable invoice templates
-- 📤 PDF export functionality
-- ⚙️ Admin configuration panel
-- 📱 Mobile-responsive UI
+![Invoicer Interface](https://via.placeholder.com/800x400.png?text=Invoice+Management+Dashboard)
 
-## Technologies 🛠️
-**Backend**
-- Node.js & Express
-- MongoDB/Mongoose
-- JSON Web Tokens (JWT)
-- Docker
-- Jest (Testing)
-- Swagger (API Docs)
+## Key Features
 
-**Frontend**
-- React.js
-- Tailwind CSS
-- React Router
-- Context API
-- Axios
-- React PDF Renderer
-- Chart.js
+- 📝 Create/edit invoices with automatic tax calculations
+- 👥 Manage clients and projects with custom rates
+- 🔒 Role-based access control (Admin/Standard Users)
+- 📊 Generate financial reports and export to PDF
+- 📦 Dockerized development/production environments
+- 🔐 JWT authentication with refresh tokens
+- 📱 Mobile-responsive user interface
 
-## Installation 📦
-1. Clone repository:
+## Technology Stack
+
+**Backend Services**
+- Node.js 18 + Express.js
+- MongoDB with Mongoose ODM
+- JWT Authentication
+- Dockerized MongoDB instance
+- REST API with rate limiting
+
+**Frontend Interface**
+- React 18 with Functional Components
+- React Router 6 for navigation
+- Tailwind CSS + PostCSS styling
+- Context API for state management
+- Axios for API communication
+- React Hot Toast notifications
+
+## Project Structure
+
+```
+invoicer/
+├── backend/
+│   ├── Dockerfile
+│   ├── src/
+│   │   ├── models/        # Database schemas (Invoice, User, Client, Project)
+│   │   ├── routes/        # API endpoints (auth, invoices, clients, users)
+│   │   ├── middlewares/   # Authentication and error handling
+│   │   └── db/           # MongoDB connection setup
+├── frontend/
+│   ├── Dockerfile
+│   ├── src/
+│   │   ├── components/    # Reusable UI components
+│   │   ├── context/       # Authentication context
+│   │   ├── utils/         # API client configuration
+│   │   └── views/         # Main application screens
+└── docker-compose.yml      # Multi-container orchestration
+```
+
+## Getting Started
+
+### Development Setup
+
+1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/invoicer.git
+git clone https://github.com/your-repository/invoicer.git
 cd invoicer
 ```
 
-2. Install dependencies:
-```bash
-# Backend
-cd backend && npm install
-
-# Frontend
-cd ../frontend && npm install
-```
-
-3. Configure environment:
+2. Set up environment variables:
 ```bash
 # Backend .env
-MONGODB_URI=mongodb://localhost:27017/invoicer
-JWT_SECRET=your_jwt_secret
-ADMIN_KEY=admin_secure_key
+cp backend/.env.example backend/.env
 
 # Frontend .env
-REACT_APP_API_BASE_URL=http://localhost:5000/api
+cp frontend/.env.example frontend/.env
 ```
 
-4. Initialize database:
+3. Start development services:
 ```bash
-cd ../backend
-npm run seed
+docker-compose -f docker-compose.dev.yml up --build
 ```
 
-## Running with Docker 🐳
+4. Access the application:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:5000
+- MongoDB: mongodb://localhost:27017/invoicer
+
+### Production Deployment
 ```bash
-docker-compose up --build
+docker-compose -f docker-compose.prod.yml up --build -d
 ```
 
-## API Reference 📚
-| Endpoint         | Method | Description              |
-|------------------|--------|--------------------------|
-| /api/auth/*      | POST   | User authentication      |
-| /api/users/*     | GET    | User management          |
-| /api/clients/*   | CRUD   | Client operations        |
-| /api/invoices/*  | CRUD   | Invoice management       |
-| /api/projects/*  | CRUD   | Project tracking         |
+## Core Functionality
 
-Full API documentation available via Postman: [![Run in Postman](https://run.pstmn.io/button.svg)](https://your-postman-docs-link)
+**Invoice Management**
+- Create invoices with multiple line items
+- Automatic tax calculations (percentage-based)
+- Multiple currency support
+- PDF export functionality
+- Invoice status tracking (Draft/Sent/Paid)
 
-## Contributing 🤝
-1. Fork the project
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push branch (`git push origin feature/AmazingFeature`)
-5. Open Pull Request
+**User Management**
+- Role-based access control (Admin/User)
+- Password reset functionality
+- User activity logging
+- Session management
 
-## License 📄
-MIT License - see [LICENSE](LICENSE) for details
+**Reporting**
+- Monthly revenue reports
+- Client billing history
+- Outstanding payments tracking
+- Tax summary reports
 
-## Acknowledgements 🙏
-- Icon set by [Heroicons](https://heroicons.com/)
-- UI inspiration from [Tailwind Components](https://tailwindcomponents.com)
+## API Documentation
+
+### Authentication Endpoints
+
+| Method | Endpoint       | Description                |
+|--------|----------------|----------------------------|
+| POST   | /api/auth/login     | User authentication        |
+| POST   | /api/auth/register  | New user registration      |
+| POST   | /api/auth/refresh   | Refresh access token       |
+
+### Invoice Endpoints
+
+| Method | Endpoint             | Description                  |
+|--------|----------------------|------------------------------|
+| GET    | /api/invoices        | List all invoices            |
+| POST   | /api/invoices        | Create new invoice           |
+| GET    | /api/invoices/:id    | Get invoice details          |
+| PATCH  | /api/invoices/:id    | Update existing invoice      |
+| DELETE | /api/invoices/:id    | Delete invoice               |
+| GET    | /api/invoices/export | Export invoices to PDF       |
+
+## Configuration
+
+**Backend Environment Variables**
+```ini
+MONGODB_URI=mongodb://mongo:27017/invoicer
+JWT_SECRET=your_secure_jwt_secret
+JWT_EXPIRES_IN=1h
+PORT=5000
+RATE_LIMIT_WINDOW=15
+RATE_LIMIT_MAX=100
+```
+
+**Frontend Environment Variables**
+```ini
+REACT_APP_API_BASE_URL=http://localhost:5000
+REACT_APP_DEFAULT_CURRENCY=USD
+REACT_APP_PAGE_SIZE=10
+```
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Support
+
+For support or feature requests, please [open an issue](https://github.com/your-repository/invoicer/issues).

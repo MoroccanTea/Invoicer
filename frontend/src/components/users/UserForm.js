@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import PropTypes from 'prop-types';
 import api from '../../utils/api';
+import { toast } from 'react-hot-toast';
 
 const UserForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -15,20 +17,25 @@ const UserForm = () => {
   });
 
   useEffect(() => {
+    const abortController = new AbortController();
+    
     if (id) {
-      fetchUser();
+      fetchUser(abortController.signal);
     }
+
+    return () => abortController.abort();
   }, [id]);
 
-  const fetchUser = async () => {
+  const fetchUser = async (signal) => {
     try {
       setLoading(true);
-      const response = await api.get(`/users/${id}`);
-      const { name, email, role } = response.data;
+      const user = await api.get(`/users/${id}`, { signal });
+      const { name, email, role } = user.data;
       setFormData({ name, email, password: '', role });
       setLoading(false);
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to fetch user');
+      console.error('Error fetching user:', err);
+      toast.error(err.response?.data?.message || 'Failed to fetch user');
       setLoading(false);
     }
   };
@@ -42,10 +49,26 @@ const UserForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrors({});
+    
+    // Basic validation
+    const newErrors = {};
+    if (!formData.name.trim()) newErrors.name = 'Name is required';
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Email address is invalid';
+    }
+    if (!id && !formData.password.trim()) newErrors.password = 'Password is required';
+    
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
     try {
       setLoading(true);
       if (id) {
-        // If password is empty, remove it from the request
         const updateData = { ...formData };
         if (!updateData.password) {
           delete updateData.password;
@@ -56,7 +79,11 @@ const UserForm = () => {
       }
       navigate('/users');
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to save user');
+      console.error('Error saving user:', err);
+      const errorMsg = err.response?.data?.message || 'Failed to save user';
+      toast.error(errorMsg);
+      setErrors({ server: errorMsg });
+    } finally {
       setLoading(false);
     }
   };
@@ -70,9 +97,9 @@ const UserForm = () => {
           {id ? 'Edit User' : 'Create New User'}
         </h1>
 
-        {error && (
+        {errors.server && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
+            {errors.server}
           </div>
         )}
 
@@ -89,6 +116,7 @@ const UserForm = () => {
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               required
             />
+            {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
           </div>
 
           <div>
@@ -103,6 +131,7 @@ const UserForm = () => {
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               required
             />
+            {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
           </div>
 
           <div>
@@ -117,6 +146,7 @@ const UserForm = () => {
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               {...(!id && { required: true })}
             />
+            {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
           </div>
 
           <div>
@@ -155,6 +185,14 @@ const UserForm = () => {
       </div>
     </div>
   );
+};
+
+UserForm.propTypes = {
+  match: PropTypes.shape({
+    params: PropTypes.shape({
+      id: PropTypes.string
+    })
+  })
 };
 
 export default UserForm;

@@ -1,7 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import api from '../../utils/api';
 
 const Register = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [config, setConfig] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -9,41 +14,57 @@ const Register = () => {
     confirmPassword: ''
   });
   const [error, setError] = useState('');
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const checkRegistration = async () => {
+      try {
+        const { data } = await api.get('/configs');
+        setConfig(data);
+        
+        if (!data?.allowRegistration) {
+          user ? navigate('/dashboard') : navigate('/login');
+        }
+      } catch (error) {
+        setError('Failed to check registration availability');
+        console.error('Error checking registration config:', error);
+        setConfig({ allowRegistration: true }); // Fallback to allowing registration
+      }
+    };
+    checkRegistration();
+  }, [user, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
+      setLoading(false);
       return;
     }
 
     try {
-      const response = await fetch('/api/v1/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          password: formData.password
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Registration failed');
-      }
-
+      await api.post('/auth/register', formData);
       navigate('/login');
     } catch (err) {
-      setError(err.message || 'Failed to register');
+      setError(err.response?.data?.error || 'Registration failed');
+    } finally {
+      setLoading(false);
     }
   };
+
+  if (!config) return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow">
+        <div className="flex justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        </div>
+        <p className="text-center text-gray-600">Checking registration availability...</p>
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -118,8 +139,9 @@ const Register = () => {
             <button
               type="submit"
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              disabled={loading}
             >
-              Register
+              {loading ? 'Registering...' : 'Register'}
             </button>
           </div>
         </form>

@@ -48,6 +48,7 @@ const ProjectForm = () => {
       // Format the dates properly
       setFormData({
         ...data,
+        client: data.client?._id,  // Store client ID instead of full object
         startDate: formatDateForInput(data.startDate),
         endDate: formatDateForInput(data.endDate)
       });
@@ -175,13 +176,6 @@ const ProjectForm = () => {
         </div>
 
         <div className="flex justify-end space-x-4">
-          <button
-            type="button"
-            onClick={() => navigate('/projects')}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-          >
-            Cancel
-          </button>
           <button
             type="submit"
             disabled={loading}
