@@ -34,34 +34,34 @@ const UserList = () => {
     }
   };
 
-  if (loading) return <div className="text-center">Loading...</div>;
-  if (error) return <div className="text-red-500">{error}</div>;
+  if (loading) return <div className="text-center dark:bg-dark-background dark:text-dark-text">Loading...</div>;
+  if (error) return <div className="text-red-500 dark:text-red-400 dark:bg-dark-background">{error}</div>;
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 dark:bg-dark-background dark:text-dark-text">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Users Management</h1>
         <button
           onClick={() => navigate('/users/new')}
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors"
         >
           Add New User
         </button>
       </div>
 
-      <div className="bg-white shadow-md rounded my-6">
+      <div className="bg-white dark:bg-dark-secondary shadow-md rounded my-6">
         <table className="min-w-full table-auto">
           <thead>
-            <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+            <tr className="bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-300 uppercase text-sm leading-normal">
               <th className="py-3 px-6 text-left">Name</th>
               <th className="py-3 px-6 text-left">Email</th>
               <th className="py-3 px-6 text-left">Role</th>
               <th className="py-3 px-6 text-center">Actions</th>
             </tr>
           </thead>
-          <tbody className="text-gray-600 text-sm">
+          <tbody className="text-gray-600 dark:text-gray-300 text-sm">
             {users.map((user) => (
-              <tr key={user._id} className="border-b border-gray-200 hover:bg-gray-100">
+              <tr key={user._id} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700">
                 <td className="py-3 px-6 text-left">{user.name}</td>
                 <td className="py-3 px-6 text-left">{user.email}</td>
                 <td className="py-3 px-6 text-left capitalize">{user.role}</td>

@@ -46,51 +46,50 @@ const Dashboard = () => {
   }, []);
 
   if (loading) {
-    return <div className="flex justify-center items-center h-screen">Loading...</div>;
+    return <div className="flex justify-center items-center h-screen dark:bg-dark-background dark:text-dark-text">Loading...</div>;
   }
 
   if (error) {
     return (
-      <div className="flex justify-center items-center h-screen text-red-600">
+      <div className="flex justify-center items-center h-screen text-red-600 dark:bg-dark-background dark:text-red-400">
         Error: {error}
       </div>
     );
   }
 
-
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
   return (
-    <div className="p-6">
+    <div className="p-6 dark:bg-dark-background dark:text-dark-text">
       <h2 className="text-2xl font-bold mb-6">Dashboard</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {/* Summary Cards */}
-        <div className="bg-white p-4 rounded-lg shadow">
-          <h3 className="text-gray-500">Total Revenue</h3>
-          <p className="text-2xl font-bold">${stats.totalRevenue}</p>
+        <div className="bg-white dark:bg-dark-secondary p-4 rounded-lg shadow dark:shadow-lg">
+          <h3 className="text-gray-500 dark:text-gray-400">Total Revenue</h3>
+          <p className="text-2xl font-bold dark:text-white">${stats.totalRevenue}</p>
         </div>
-        <div className="bg-white p-4 rounded-lg shadow">
-          <h3 className="text-gray-500">Active Projects</h3>
-          <p className="text-2xl font-bold">{stats.activeProjects}</p>
+        <div className="bg-white dark:bg-dark-secondary p-4 rounded-lg shadow dark:shadow-lg">
+          <h3 className="text-gray-500 dark:text-gray-400">Active Projects</h3>
+          <p className="text-2xl font-bold dark:text-white">{stats.activeProjects}</p>
         </div>
-        <div className="bg-white p-4 rounded-lg shadow">
-          <h3 className="text-gray-500">Pending Invoices</h3>
-          <p className="text-2xl font-bold">{stats.pendingInvoices}</p>
+        <div className="bg-white dark:bg-dark-secondary p-4 rounded-lg shadow dark:shadow-lg">
+          <h3 className="text-gray-500 dark:text-gray-400">Pending Invoices</h3>
+          <p className="text-2xl font-bold dark:text-white">{stats.pendingInvoices}</p>
         </div>
-        <div className="bg-white p-4 rounded-lg shadow">
-          <h3 className="text-gray-500">Completed Projects</h3>
-          <p className="text-2xl font-bold">{stats.completedProjects}</p>
+        <div className="bg-white dark:bg-dark-secondary p-4 rounded-lg shadow dark:shadow-lg">
+          <h3 className="text-gray-500 dark:text-gray-400">Completed Projects</h3>
+          <p className="text-2xl font-bold dark:text-white">{stats.completedProjects}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Revenue Chart */}
-        <div className="bg-white p-4 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-4">Monthly Revenue</h3>
+        <div className="bg-white dark:bg-dark-secondary p-4 rounded-lg shadow dark:shadow-lg">
+          <h3 className="text-lg font-semibold mb-4 dark:text-white">Monthly Revenue</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={stats.revenueByMonth}>
-              <CartesianGrid strokeDasharray="3 3" />
+              <CartesianGrid strokeDasharray="3 3" stroke="gray" />
               <XAxis dataKey="month" />
               <YAxis />
               <Tooltip />
@@ -101,8 +100,8 @@ const Dashboard = () => {
         </div>
 
         {/* Projects by Category */}
-        <div className="bg-white p-4 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-4">Projects by Category</h3>
+        <div className="bg-white dark:bg-dark-secondary p-4 rounded-lg shadow dark:shadow-lg">
+          <h3 className="text-lg font-semibold mb-4 dark:text-white">Projects by Category</h3>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
@@ -125,36 +124,36 @@ const Dashboard = () => {
         </div>
 
         {/* Recent Activity */}
-        <div className="bg-white p-4 rounded-lg shadow lg:col-span-2">
-          <h3 className="text-lg font-semibold mb-4">Recent Activity</h3>
+        <div className="bg-white dark:bg-dark-secondary p-4 rounded-lg shadow dark:shadow-lg lg:col-span-2">
+          <h3 className="text-lg font-semibold mb-4 dark:text-white">Recent Activity</h3>
           <div className="overflow-x-auto">
             <table className="min-w-full">
               <thead>
                 <tr>
-                  <th className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-dark-secondary text-left text-xs leading-4 font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Date
                   </th>
-                  <th className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-dark-secondary text-left text-xs leading-4 font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Activity
                   </th>
-                  <th className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-dark-secondary text-left text-xs leading-4 font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Status
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {stats.recentActivity.map((activity, index) => (
-                  <tr key={index}>
-                    <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
+                  <tr key={index} className="dark:border-gray-700">
+                    <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-200 dark:border-gray-700 dark:text-gray-300">
                       {new Date(activity.date).toLocaleDateString()}
                     </td>
-                    <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
+                    <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-200 dark:border-gray-700 dark:text-gray-300">
                       {activity.description}
                     </td>
-                    <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
-                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${activity.status === 'completed' ? 'bg-green-100 text-green-800' :
-                          activity.status === 'in-progress' ? 'bg-blue-100 text-blue-800' :
-                            'bg-yellow-100 text-yellow-800'
+                    <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-200 dark:border-gray-700">
+                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${activity.status === 'completed' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' :
+                          activity.status === 'in-progress' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400' :
+                            'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
                         }`}>
                           {activity.status.charAt(0).toUpperCase() + activity.status.slice(1)}
                       </span>

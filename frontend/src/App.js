@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import { DarkModeProvider } from './context/DarkModeContext';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
@@ -31,11 +32,11 @@ import ConfigurationForm from './components/settings/ConfigurationForm';
 import UserList from './components/users/UserList';
 import UserForm from './components/users/UserForm';
 
-
 function App() {
   return (
-    <>
-      <Toaster
+    <DarkModeProvider>
+      <div className="min-h-screen bg-white dark:bg-dark-background text-black dark:text-dark-text transition-colors duration-300">
+        <Toaster
           position="top-right"
           toastOptions={{
             duration: 3000,
@@ -97,7 +98,8 @@ function App() {
           {/* Catch all */}
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
-    </>
+      </div>
+    </DarkModeProvider>
   );
 }
 

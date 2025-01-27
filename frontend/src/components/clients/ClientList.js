@@ -25,7 +25,7 @@ const ClientList = () => {
   }, [token]);
 
   if (loading) {
-    return <div className="flex justify-center items-center h-64">Loading...</div>;
+    return <div className="flex justify-center items-center h-64 dark:bg-dark-background dark:text-dark-text">Loading...</div>;
   }
 
   const handleDeleteClient = async (clientId) => {
@@ -43,14 +43,13 @@ const ClientList = () => {
     }
   };
 
-
   return (
-    <div className="p-6">
+    <div className="p-6 dark:bg-dark-background dark:text-dark-text">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Clients</h2>
         <Link
           to="/clients/new"
-          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
         >
           Add New Client
         </Link>
@@ -58,15 +57,15 @@ const ClientList = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {clients.map((client) => (
-          <div key={client._id} className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold">{client.name}</h3>
+          <div key={client._id} className="bg-white dark:bg-dark-secondary rounded-lg shadow p-6">
+            <h3 className="text-lg font-semibold dark:text-white">{client.name}</h3>
             {client.company && (
-              <p className="text-gray-600 mt-1">{client.company}</p>
+              <p className="text-gray-600 dark:text-gray-400 mt-1">{client.company}</p>
             )}
             <div className="mt-4 space-y-2">
-              <p className="text-sm text-gray-500">{client.email}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-300">{client.email}</p>
               {client.phone && (
-                <p className="text-sm text-gray-500">{client.phone}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-300">{client.phone}</p>
               )}
             </div>
             <div className="mt-4 flex space-x-4">

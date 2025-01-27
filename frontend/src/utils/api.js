@@ -9,15 +9,28 @@ const createApiClient = () => {
     });
   
     const handleResponse = async (response) => {
+      console.log('API Response:', response);
+      
       if (!response.ok) {
-        const error = await response.json().catch(() => ({ error: 'An error occurred' }));
-        throw new Error(error.error || error.message || 'Request failed');
+        const errorText = await response.text();
+        console.error('API Error Response:', errorText);
+        
+        try {
+          const errorJson = JSON.parse(errorText);
+          throw new Error(errorJson.error || errorJson.message || 'Request failed');
+        } catch {
+          throw new Error(errorText || 'Request failed');
+        }
       }
-      return response.json();
+      
+      const data = await response.json();
+      console.log('API Response Data:', data);
+      return data;
     };
   
     return {
       get: async (endpoint) => {
+        console.log(`Fetching endpoint: ${baseURL}${endpoint}`);
         const response = await fetch(`${baseURL}${endpoint}`, {
           headers: getHeaders()
         });

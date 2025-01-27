@@ -182,7 +182,7 @@ router.post('/', auth, adminAuth, async (req, res) => {
     delete userWithoutPassword.password;
     res.status(201).json(userWithoutPassword);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ error: error.message }); 
   }
 });
 
