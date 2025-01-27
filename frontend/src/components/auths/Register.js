@@ -20,15 +20,18 @@ const Register = () => {
     const checkRegistration = async () => {
       try {
         const { data } = await api.get('/configs');
-        setConfig(data);
+        setConfig(data); // Always set config first
         
+        // Check registration status after config is set
         if (!data?.allowRegistration) {
-          user ? navigate('/dashboard') : navigate('/login');
+          setError('User registration is currently disabled by the administrator');
+          setTimeout(() => {
+            user ? navigate('/dashboard') : navigate('/login');
+          }, 3000);
         }
       } catch (error) {
-        setError('Failed to check registration availability');
         console.error('Error checking registration config:', error);
-        setConfig({ allowRegistration: true }); // Fallback to allowing registration
+        setError('Failed to check registration availability');
       }
     };
     checkRegistration();
@@ -38,6 +41,13 @@ const Register = () => {
     e.preventDefault();
     setError('');
     setLoading(true);
+
+    // Double check registration is still enabled
+    if (!config?.allowRegistration) {
+      setError('User registration is currently disabled by the administrator');
+      setLoading(false);
+      return;
+    }
 
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
@@ -55,17 +65,34 @@ const Register = () => {
     }
   };
 
-  if (!config) return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow">
-        <div className="flex justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+  // Show loading state while checking config
+  if (!config) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow">
+          <div className="flex justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+          </div>
+          <p className="text-center text-gray-600">Checking registration availability...</p>
         </div>
-        <p className="text-center text-gray-600">Checking registration availability...</p>
       </div>
-    </div>
-  );
+    );
+  }
 
+  // Show error state if registration is disabled
+  if (!config.allowRegistration) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            {error || 'User registration is currently disabled by the administrator'}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show registration form if registration is enabled
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow">

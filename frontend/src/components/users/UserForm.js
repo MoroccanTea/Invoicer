@@ -21,21 +21,46 @@ const UserForm = () => {
     
     if (id) {
       fetchUser(abortController.signal);
+    } else {
+      // Reset form for new user creation
+      setFormData({
+        name: '',
+        email: '',
+        password: '',
+        role: 'user'
+      });
     }
 
     return () => abortController.abort();
-  }, [id]);
+  }, [id]); // Only react to ID changes
+
 
   const fetchUser = async (signal) => {
     try {
       setLoading(true);
-      const user = await api.get(`/users/${id}`, { signal });
-      const { name, email, role } = user.data;
-      setFormData({ name, email, password: '', role });
-      setLoading(false);
+      const response = await api.get(`/users/${id}`, { signal });
+      
+      if (!response) {
+        throw new Error('User data not found in response');
+      }
+
+      const { name, email, role, updatedAt } = response;
+      
+      setFormData({ 
+        name: name || '', 
+        email: email || '', 
+        password: '', 
+        role: role || 'user' 
+      });
+
+      // Store latest update timestamp
+      localStorage.setItem(`user-${id}-updatedAt`, updatedAt);
+
     } catch (err) {
       console.error('Error fetching user:', err);
-      toast.error(err.response?.data?.message || 'Failed to fetch user');
+      toast.error(err.message || 'Failed to fetch user');
+      navigate('/users', { state: { error: 'User not found' } });
+    } finally {
       setLoading(false);
     }
   };
@@ -80,13 +105,24 @@ const UserForm = () => {
       navigate('/users');
     } catch (err) {
       console.error('Error saving user:', err);
-      const errorMsg = err.response?.data?.message || 'Failed to save user';
+      const errorMsg = err.message || 'Failed to save user';
       toast.error(errorMsg);
       setErrors({ server: errorMsg });
     } finally {
       setLoading(false);
     }
   };
+
+  // Add error boundary for API failures
+  if (!api) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          API connection not configured properly
+        </div>
+      </div>
+    );
+  }
 
   if (loading) return <div className="text-center">Loading...</div>;
 
@@ -187,12 +223,6 @@ const UserForm = () => {
   );
 };
 
-UserForm.propTypes = {
-  match: PropTypes.shape({
-    params: PropTypes.shape({
-      id: PropTypes.string
-    })
-  })
-};
+UserForm.propTypes = {};
 
 export default UserForm;

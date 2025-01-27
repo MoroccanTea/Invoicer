@@ -226,16 +226,14 @@ const InvoiceForm = () => {
       const taxAmount = subtotal * (taxRate / 100);
       const total = subtotal + taxAmount;
   
+      // Only send allowed fields to the backend
       const dataToSend = {
-        ...formData,
         items: updatedItems,
-        subtotal,
+        status: formData.status,
         taxRate,
-        taxAmount,
-        total,
         invoiceDate: new Date(formData.invoiceDate),
         dueDate: new Date(formData.dueDate),
-        currency: config.currency // Include user's currency configuration
+        notes: formData.notes
       };
   
       if (id) {

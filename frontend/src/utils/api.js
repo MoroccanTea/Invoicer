@@ -1,6 +1,6 @@
 const createApiClient = () => {
     const getToken = () => localStorage.getItem('token');
-    const baseURL = '/api/v1';
+    const baseURL = 'http://localhost:5000/api/v1'; // Direct backend connection
     // Ensure baseURL has single /api/v1 prefix
   
     const getHeaders = () => ({
@@ -33,6 +33,15 @@ const createApiClient = () => {
         return handleResponse(response);
       },
   
+      put: async (endpoint, data) => {
+        const response = await fetch(`${baseURL}${endpoint}`, {
+          method: 'PUT',
+          headers: getHeaders(),
+          body: JSON.stringify(data)
+        });
+        return handleResponse(response);
+      },
+
       patch: async (endpoint, data) => {
         const response = await fetch(`${baseURL}${endpoint}`, {
           method: 'PATCH',

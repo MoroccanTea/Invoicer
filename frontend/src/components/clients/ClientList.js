@@ -72,13 +72,13 @@ const ClientList = () => {
             <div className="mt-4 flex space-x-4">
               <Link
                 to={`/clients/${client._id}/edit`}
-                className="text-blue-600 hover:text-blue-800"
+                className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-1 px-3 rounded mr-2"
               >
                 Edit
               </Link>
               <button
                 onClick={() => handleDeleteClient(client._id)}
-                className="text-red-600 hover:text-red-800"
+                className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-3 rounded"
               >
                 Delete
               </button>

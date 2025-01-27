@@ -43,28 +43,29 @@ const ConfigurationForm = () => {
   }, [user, navigate]);
 
   const fetchConfig = async () => {
-    try {
-      const data = await api.get('/configs');
-      setFormData({
-        ...data,
-        businessInfo: {
-          CNIE: '',
-          IF: '',
-          taxeProfessionnelle: '',
-          ICE: '',
-          telephone: '',
-          website: '',
-          email: '',
-          ...data.businessInfo // Merge with existing business info if any
-        }
-      });
-    } catch (error) {
-      console.error('Error fetching config:', error);
-      toast.error(error.message || 'Failed to load configuration');
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    const data = await api.get('/configs');
+    setFormData(prevState => ({
+      ...prevState,
+      ...data,
+      businessInfo: {
+        CNIE: prevState.businessInfo.CNIE || '', // Default value if not provided by API
+        IF: prevState.businessInfo.IF || '', // Default value if not provided by API
+        taxeProfessionnelle: prevState.businessInfo.taxeProfessionnelle || '', // Default value if not provided by API
+        ICE: prevState.businessInfo.ICE || '', // Default value if not provided by API
+        telephone: prevState.businessInfo.telephone || '', // Default value if not provided by API
+        website: prevState.businessInfo.website || '', // Default value if not provided by API
+        email: prevState.businessInfo.email || '', // Default value if not provided by API
+        ...data.businessInfo // Merge with the businessInfo from the API
+      }
+    }));
+  } catch (error) {
+    console.error('Error fetching config:', error);
+    toast.error(error.message || 'Failed to load configuration');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleBusinessInfoChange = (field, value) => {
     setFormData({
@@ -280,7 +281,7 @@ const ConfigurationForm = () => {
             <button
               type="button"
               onClick={addCategory}
-              className="text-sm text-indigo-600 hover:text-indigo-900"
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded"
             >
               Add Category
             </button>
@@ -312,7 +313,7 @@ const ConfigurationForm = () => {
                 <button
                   type="button"
                   onClick={() => removeCategory(index)}
-                  className="text-red-600 hover:text-red-900"
+                  className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-3 rounded"
                   disabled={formData.categories.length <= 1}
                 >
                   Remove

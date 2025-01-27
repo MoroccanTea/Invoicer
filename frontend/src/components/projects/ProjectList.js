@@ -68,18 +68,18 @@ const ProjectList = () => {
                     project.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                       'bg-gray-100 text-gray-800'
                 }`}>
-                {project.status}
+                  {project.status.charAt(0).toUpperCase() + project.status.slice(1)}
               </span>
               <div className="mt-4 flex space-x-4">
                 <Link
                   to={`/projects/${project._id}/edit`}
-                  className="text-blue-600 hover:text-blue-800"
+                  className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-1 px-3 rounded mr-2"
                 >
                   Edit
                 </Link>
                 <button
                   onClick={() => handleDeleteProject(project._id)}
-                  className="text-red-600 hover:text-red-800"
+                  className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-3 rounded"
                 >
                   Delete
                 </button>

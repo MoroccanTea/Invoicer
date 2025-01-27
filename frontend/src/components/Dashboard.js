@@ -156,7 +156,7 @@ const Dashboard = () => {
                           activity.status === 'in-progress' ? 'bg-blue-100 text-blue-800' :
                             'bg-yellow-100 text-yellow-800'
                         }`}>
-                        {activity.status}
+                          {activity.status.charAt(0).toUpperCase() + activity.status.slice(1)}
                       </span>
                     </td>
                   </tr>
