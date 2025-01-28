@@ -49,27 +49,41 @@ const UserList = () => {
         </button>
       </div>
 
-      <div className="bg-white dark:bg-dark-secondary shadow-md rounded my-6">
-        <table className="min-w-full table-auto">
-          <thead>
-            <tr className="bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-300 uppercase text-sm leading-normal">
-              <th className="py-3 px-6 text-left">Name</th>
-              <th className="py-3 px-6 text-left">Email</th>
-              <th className="py-3 px-6 text-left">Role</th>
-              <th className="py-3 px-6 text-center">Actions</th>
+      <div className="bg-white dark:bg-dark-secondary shadow-md rounded my-6 overflow-x-auto">
+        <table className="min-w-full w-full table-auto">
+          <thead className="bg-gray-200 dark:bg-gray-800">
+            <tr className="text-gray-600 dark:text-gray-300 uppercase text-sm leading-normal">
+              <th className="py-3 px-4 text-left hidden md:table-cell">Name</th>
+              <th className="py-3 px-4 text-left">Email</th>
+              <th className="py-3 px-4 text-left hidden sm:table-cell">Role</th>
+              <th className="py-3 px-4 text-center">Actions</th>
             </tr>
           </thead>
-          <tbody className="text-gray-600 dark:text-gray-300 text-sm">
+          <tbody className="text-gray-600 dark:text-gray-300 text-sm divide-y divide-gray-200 dark:divide-gray-700">
             {users.map((user) => (
-              <tr key={user._id} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700">
-                <td className="py-3 px-6 text-left">{user.name}</td>
-                <td className="py-3 px-6 text-left">{user.email}</td>
-                <td className="py-3 px-6 text-left capitalize">{user.role}</td>
-                <td className="py-3 px-6 text-center">
-                  <div className="flex item-center justify-center">
+              <tr key={user._id} className="hover:bg-gray-100 dark:hover:bg-gray-700">
+                <td className="py-3 px-4 hidden md:table-cell dark:text-gray-300">
+                  {user.name}
+                </td>
+                <td className="py-3 px-4 dark:text-gray-300">
+                  <div className="flex flex-col">
+                    <span className="font-medium md:hidden">{user.name}</span>
+                    <span>{user.email}</span>
+                    <div className="md:hidden">
+                      <span className="text-sm text-gray-500 dark:text-gray-400 capitalize">
+                        {user.role}
+                      </span>
+                    </div>
+                  </div>
+                </td>
+                <td className="py-3 px-4 hidden sm:table-cell dark:text-gray-300 capitalize">
+                  {user.role}
+                </td>
+                <td className="py-3 px-4 text-center">
+                  <div className="flex items-center justify-center space-x-2">
                     <button
                       onClick={() => navigate(`/users/edit/${user._id}`)}
-                      className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-1 px-3 rounded mr-2"
+                      className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-1 px-3 rounded"
                     >
                       Edit
                     </button>

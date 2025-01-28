@@ -124,24 +124,24 @@ const UserForm = () => {
     );
   }
 
-  if (loading) return <div className="text-center">Loading...</div>;
+  if (loading) return <div className="text-center dark:text-white">Loading...</div>;
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 dark:bg-dark-background min-h-screen">
       <div className="max-w-lg mx-auto">
-        <h1 className="text-2xl font-bold mb-6">
+        <h1 className="text-2xl font-bold mb-6 dark:text-white">
           {id ? 'Edit User' : 'Create New User'}
         </h1>
 
         {errors.server && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          <div className="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-300 px-4 py-3 rounded mb-4">
             {errors.server}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-gray-700 text-sm font-bold mb-2">
+            <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
               Name
             </label>
             <input
@@ -149,14 +149,14 @@ const UserForm = () => {
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-dark-text dark:bg-dark-background dark:border-gray-600 leading-tight focus:outline-none focus:shadow-outline dark:focus:border-indigo-400"
               required
             />
-            {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+            {errors.name && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.name}</p>}
           </div>
 
           <div>
-            <label className="block text-gray-700 text-sm font-bold mb-2">
+            <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
               Email
             </label>
             <input
@@ -164,14 +164,14 @@ const UserForm = () => {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-dark-text dark:bg-dark-background dark:border-gray-600 leading-tight focus:outline-none focus:shadow-outline dark:focus:border-indigo-400"
               required
             />
-            {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+            {errors.email && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.email}</p>}
           </div>
 
           <div>
-            <label className="block text-gray-700 text-sm font-bold mb-2">
+            <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
               Password {id && '(Leave blank to keep current password)'}
             </label>
             <input
@@ -179,21 +179,21 @@ const UserForm = () => {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-dark-text dark:bg-dark-background dark:border-gray-600 leading-tight focus:outline-none focus:shadow-outline dark:focus:border-indigo-400"
               {...(!id && { required: true })}
             />
-            {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
+            {errors.password && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.password}</p>}
           </div>
 
           <div>
-            <label className="block text-gray-700 text-sm font-bold mb-2">
+            <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
               Role
             </label>
             <select
               name="role"
               value={formData.role}
               onChange={handleChange}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-dark-text dark:bg-dark-background dark:border-gray-600 leading-tight focus:outline-none focus:shadow-outline dark:focus:border-indigo-400"
               required
             >
               <option value="user">User</option>
@@ -205,14 +205,14 @@ const UserForm = () => {
             <button
               type="button"
               onClick={() => navigate('/users')}
-              className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+              className="bg-gray-500 dark:bg-gray-600 hover:bg-gray-700 dark:hover:bg-gray-800 text-white font-bold py-2 px-4 rounded"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              className="bg-blue-500 dark:bg-blue-600 hover:bg-blue-700 dark:hover:bg-blue-800 text-white font-bold py-2 px-4 rounded"
             >
               {loading ? 'Saving...' : 'Save'}
             </button>
