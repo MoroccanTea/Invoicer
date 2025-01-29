@@ -153,10 +153,13 @@ router.post('/login', async (req, res) => {
     if (!isMatch) {
       throw new Error('Invalid login credentials');
     }
+    if (!user.isActivated) {
+      throw new Error('Account is disabled');
+    }
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
     res.json({ user, token });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(401).json({ error: error.message });
   }
 });
 

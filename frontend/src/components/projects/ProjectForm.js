@@ -10,6 +10,7 @@ const ProjectForm = () => {
   const { token } = useAuth();
   const [loading, setLoading] = useState(false);
   const [clients, setClients] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [formData, setFormData] = useState({
     title: '',
     client: '',
@@ -22,6 +23,7 @@ const ProjectForm = () => {
 
   useEffect(() => {
     fetchClients();
+    fetchCategories();
     if (id) {
       fetchProject();
     }
@@ -33,6 +35,15 @@ const ProjectForm = () => {
       setClients(data);
     } catch (error) {
       toast.error('Error loading clients');
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const config = await api.get('/configs');
+      setCategories(config.categories || []);
+    } catch (error) {
+      toast.error('Error loading categories');
     }
   };
 
@@ -153,10 +164,11 @@ const ProjectForm = () => {
                 required
               >
                 <option value="">Select a category</option>
-                <option value="teaching">Teaching</option>
-                <option value="development">Development</option>
-                <option value="consulting">Consulting</option>
-                <option value="pentesting">Pentesting</option>
+                {categories.map((category) => (
+                  <option key={category.code} value={category.code.toLowerCase()}>
+                    {category.name}
+                  </option>
+                ))}
               </select>
             </div>
           </div>

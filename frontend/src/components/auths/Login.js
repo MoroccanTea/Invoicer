@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { EnvelopeIcon, LockClosedIcon } from '@heroicons/react/24/solid';
 import { useAuth } from '../../context/AuthContext';
+import { useDarkMode } from '../../context/DarkModeContext';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
 import FormInput from '../common/FormInput';
 import FormButton from '../common/FormButton';
+import { SunIcon, MoonIcon } from '@heroicons/react/24/solid';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -13,6 +15,7 @@ const Login = () => {
     password: ''
   });
   const { login, token, error, loading } = useAuth();
+  const { isDarkMode, toggleDarkMode } = useDarkMode();
   const navigate = useNavigate();
 
   // If already authenticated, redirect to dashboard
@@ -35,6 +38,15 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white dark:bg-dark-background py-12 px-4 sm:px-6 lg:px-8">
+      <div className="absolute top-4 right-4">
+        <button 
+          type="button" 
+          onClick={toggleDarkMode} 
+          className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+        >
+          {isDarkMode ? <SunIcon className="h-6 w-6" /> : <MoonIcon className="h-6 w-6" />}
+        </button>
+      </div>
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">

@@ -9,6 +9,20 @@ const InvoiceList = () => {
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
+  const [currencyCode, setCurrencyCode] = useState('USD');
+
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const config = await api.get('/configs');
+        setCurrencyCode(config.currency?.code || 'USD');
+      } catch (error) {
+        console.error('Error fetching currency config:', error);
+      }
+    };
+
+    fetchConfig();
+  }, []);
 
   useEffect(() => {
     const fetchInvoices = async () => {
@@ -17,7 +31,7 @@ const InvoiceList = () => {
         const response = await api.get(`/invoices?page=${currentPage}`);
         
         // Extensive logging for debugging
-        console.log('Full API Response:', response);
+        console.log('Full API Response:', JSON.stringify(response, null, 2));
         console.log('Response Keys:', Object.keys(response));
 
         // Multiple strategies to extract invoices
@@ -32,27 +46,56 @@ const InvoiceList = () => {
           fetchedInvoices = response.invoices;
         }
 
-        console.log('Extracted Invoices:', fetchedInvoices);
+        console.log('Extracted Invoices:', JSON.stringify(fetchedInvoices, null, 2));
 
         // Validate and enrich invoices
         const validInvoices = fetchedInvoices
           .filter(invoice => invoice && typeof invoice === 'object' && invoice._id)
-          .map(invoice => ({
-            ...invoice,
-            client: {
-              name: 
-                invoice.client?.name || 
-                invoice.clientName || 
-                invoice.client_name || 
-                (invoice.client && (invoice.client.fullName || invoice.client.displayName)) || 
-                invoice.project?.client?.name || 
-                'Unknown Client'
-            }
-          }));
+          .map(invoice => {
+            // Comprehensive amount extraction with detailed logging
+            const extractAmount = (inv) => {
+              const amountCandidates = [
+                inv.totalAmount,
+                inv.amount,
+                inv.total,
+                inv.invoiceTotal,
+                inv.price,
+                inv.value,
+                inv.subtotal,
+                inv.grandTotal,
+                inv.amount_total,
+                inv.total_amount
+              ];
 
-        console.log('Processed Invoices:', validInvoices);
+              const extractedAmount = amountCandidates.find(amount => 
+                typeof amount === 'number' && !isNaN(amount)
+              );
 
-        setInvoices(validInvoices);
+              console.log('Amount Extraction Debug:', {
+                invoice: inv,
+                candidates: amountCandidates,
+                extractedAmount: extractedAmount || 'No valid amount found'
+              });
+
+              return extractedAmount || 0;
+            };
+
+            return {
+              ...invoice,
+              totalAmount: extractAmount(invoice),
+              client: {
+                name: 
+                  invoice.client?.name || 
+                  invoice.clientName || 
+                  invoice.client_name || 
+                  (invoice.client && (invoice.client.fullName || invoice.client.displayName)) || 
+                  invoice.project?.client?.name || 
+                  'Unknown Client'
+              }
+            };
+          });
+
+        console.log('Processed Invoices:', JSON.stringify(validInvoices, null, 2));
 
         // Determine total pages
         const pages = response.data?.totalPages || 
@@ -60,6 +103,7 @@ const InvoiceList = () => {
                       (validInvoices.length > 0 ? 1 : 0);
         
         setTotalPages(pages);
+        setInvoices(validInvoices);
 
       } catch (error) {
         console.error('Error fetching invoices:', error);
@@ -149,7 +193,7 @@ const InvoiceList = () => {
                       <span className="font-medium">{invoice.client.name}</span>
                       <div className="md:hidden">
                         <span className="text-sm text-gray-500 dark:text-gray-400 mr-2">
-                          ${(invoice.totalAmount || 0).toFixed(2)}
+                          {(invoice.totalAmount || 0).toFixed(2)} {currencyCode}
                         </span>
                         <span className={`inline-flex text-xs leading-5 font-semibold rounded-full ${
                           invoice.status === 'paid' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' :
@@ -162,7 +206,7 @@ const InvoiceList = () => {
                     </div>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap hidden md:table-cell dark:text-gray-300">
-                    ${(invoice.totalAmount || 0).toFixed(2)}
+                    {(invoice.totalAmount || 0).toFixed(2)} {currencyCode}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap hidden sm:table-cell">
                     <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${

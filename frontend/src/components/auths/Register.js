@@ -2,13 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { UserIcon, EnvelopeIcon, LockClosedIcon } from '@heroicons/react/24/solid';
 import { useAuth } from '../../context/AuthContext';
+import { useDarkMode } from '../../context/DarkModeContext';
+import toast from 'react-hot-toast';
 import api from '../../utils/api';
 import FormInput from '../common/FormInput';
 import FormButton from '../common/FormButton';
+import { SunIcon, MoonIcon } from '@heroicons/react/24/solid';
 
 const Register = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isDarkMode, toggleDarkMode } = useDarkMode();
   const [config, setConfig] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -17,7 +21,40 @@ const Register = () => {
     confirmPassword: ''
   });
   const [error, setError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Password complexity validation function
+  const validatePassword = (password) => {
+    const errors = [];
+
+    // Minimum length check
+    if (password.length < 8) {
+      errors.push('Password must be at least 8 characters long');
+    }
+
+    // Uppercase letter check
+    if (!/[A-Z]/.test(password)) {
+      errors.push('Password must contain at least one uppercase letter');
+    }
+
+    // Lowercase letter check
+    if (!/[a-z]/.test(password)) {
+      errors.push('Password must contain at least one lowercase letter');
+    }
+
+    // Number check
+    if (!/[0-9]/.test(password)) {
+      errors.push('Password must contain at least one number');
+    }
+
+    // Special character check
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+      errors.push('Password must contain at least one special character');
+    }
+
+    return errors;
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -31,10 +68,13 @@ const Register = () => {
 
         const data = response.data || response;
         
-        // If user is logged in and registration is disabled, redirect to dashboard
-        if (user && !data?.allowRegistration) {
-          setError('User registration is currently disabled by the administrator');
-          navigate('/dashboard');
+        // If registration is disabled, redirect to login with toast
+        if (!data?.allowRegistration) {
+          toast.error('Registration is currently disabled. Please contact an administrator.', {
+            position: 'top-center',
+            duration: 5000,
+          });
+          navigate('/login');
           return;
         }
         
@@ -65,21 +105,45 @@ const Register = () => {
     };
   }, [user, navigate]);
 
+  // Redirect if registration is disabled
+  useEffect(() => {
+    if (config && !config.allowRegistration) {
+      toast.error('Registration is currently disabled. Please contact an administrator.', {
+        position: 'top-center',
+        duration: 5000,
+      });
+      navigate('/login');
+    }
+  }, [config, navigate]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setPasswordError('');
     setLoading(true);
 
     // Double check registration is still enabled
     if (!config?.allowRegistration) {
-      setError('User registration is currently disabled by the administrator');
+      toast.error('Registration is currently disabled. Please contact an administrator.', {
+        position: 'top-center',
+        duration: 5000,
+      });
       navigate('/login');
       setLoading(false);
       return;
     }
 
+    // Password match check
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
+      setLoading(false);
+      return;
+    }
+
+    // Password complexity validation
+    const passwordValidationErrors = validatePassword(formData.password);
+    if (passwordValidationErrors.length > 0) {
+      setPasswordError(passwordValidationErrors.join('. '));
       setLoading(false);
       return;
     }
@@ -98,6 +162,15 @@ const Register = () => {
   if (!config) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white dark:bg-dark-background">
+        <div className="absolute top-4 right-4">
+          <button 
+            type="button" 
+            onClick={toggleDarkMode} 
+            className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+          >
+            {isDarkMode ? <SunIcon className="h-6 w-6" /> : <MoonIcon className="h-6 w-6" />}
+          </button>
+        </div>
         <div className="max-w-md w-full space-y-8 p-8 bg-white dark:bg-dark-secondary rounded-lg shadow dark:shadow-lg">
           <div className="flex justify-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 dark:border-indigo-400"></div>
@@ -109,21 +182,22 @@ const Register = () => {
   }
 
   // Show error state if registration is disabled
-  if (!config.allowRegistration) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-dark-background">
-        <div className="max-w-md w-full space-y-8 p-8 bg-white dark:bg-dark-secondary rounded-lg shadow dark:shadow-lg">
-          <div className="bg-red-100 border border-red-400 text-red-700 dark:bg-red-900/20 dark:border-red-600 dark:text-red-400 px-4 py-3 rounded">
-            {error || 'User registration is currently disabled by the administrator'}
-          </div>
-        </div>
-      </div>
-    );
+  if (!config || !config.allowRegistration) {
+    return null; // Prevent rendering anything
   }
 
   // Show registration form if registration is enabled
   return (
     <div className="min-h-screen flex items-center justify-center bg-white dark:bg-dark-background py-12 px-4 sm:px-6 lg:px-8">
+      <div className="absolute top-4 right-4">
+        <button 
+          type="button" 
+          onClick={toggleDarkMode} 
+          className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+        >
+          {isDarkMode ? <SunIcon className="h-6 w-6" /> : <MoonIcon className="h-6 w-6" />}
+        </button>
+      </div>
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
@@ -134,6 +208,11 @@ const Register = () => {
           {error && (
             <div className="bg-red-100 border border-red-400 text-red-700 dark:bg-red-900/20 dark:border-red-600 dark:text-red-400 px-4 py-3 rounded">
               {error}
+            </div>
+          )}
+          {passwordError && (
+            <div className="bg-red-100 border border-red-400 text-red-700 dark:bg-red-900/20 dark:border-red-600 dark:text-red-400 px-4 py-3 rounded">
+              {passwordError}
             </div>
           )}
           <FormInput 
@@ -167,9 +246,17 @@ const Register = () => {
             label="Password"
             placeholder="Enter your password"
             value={formData.password}
-            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            onChange={(e) => {
+              const newPassword = e.target.value;
+              setFormData({ ...formData, password: newPassword });
+              
+              // Real-time password validation
+              const passwordErrors = validatePassword(newPassword);
+              setPasswordError(passwordErrors.length > 0 ? passwordErrors.join('. ') : '');
+            }}
             required
             icon={LockClosedIcon}
+            error={passwordError}
           />
 
           <FormInput 

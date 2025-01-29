@@ -16,6 +16,10 @@ const auth = async (req, res, next) => {
       throw new Error('User not found');
     }
 
+    if (!user.isActivated) {
+      return res.status(403).json({ error: 'Account is disabled' });
+    }
+
     req.token = token;
     req.user = user;
     next();

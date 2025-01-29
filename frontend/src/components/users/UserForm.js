@@ -13,7 +13,8 @@ const UserForm = () => {
     name: '',
     email: '',
     password: '',
-    role: 'user'
+    role: 'user',
+    isActivated: true
   });
 
   useEffect(() => {
@@ -27,13 +28,13 @@ const UserForm = () => {
         name: '',
         email: '',
         password: '',
-        role: 'user'
+        role: 'user',
+        isActivated: true
       });
     }
 
     return () => abortController.abort();
   }, [id]); // Only react to ID changes
-
 
   const fetchUser = async (signal) => {
     try {
@@ -44,13 +45,14 @@ const UserForm = () => {
         throw new Error('User data not found in response');
       }
 
-      const { name, email, role, updatedAt } = response;
+      const { name, email, role, isActivated, updatedAt } = response;
       
       setFormData({ 
         name: name || '', 
         email: email || '', 
         password: '', 
-        role: role || 'user' 
+        role: role || 'user',
+        isActivated: isActivated !== undefined ? isActivated : true
       });
 
       // Store latest update timestamp
@@ -199,6 +201,27 @@ const UserForm = () => {
               <option value="user">User</option>
               <option value="admin">Admin</option>
             </select>
+          </div>
+
+          <div>
+            <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
+              Account Status
+            </label>
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                name="isActivated"
+                checked={formData.isActivated}
+                onChange={(e) => setFormData({
+                  ...formData,
+                  isActivated: e.target.checked
+                })}
+                className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              <span className="text-gray-700 dark:text-gray-300">
+                {formData.isActivated ? 'Active' : 'Disabled'}
+              </span>
+            </div>
           </div>
 
           <div className="flex justify-end space-x-4">

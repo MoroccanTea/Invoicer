@@ -49,14 +49,7 @@ const ConfigurationForm = () => {
         ...prevState,
         ...data,
         businessInfo: {
-          CNIE: prevState.businessInfo.CNIE || '', 
-          IF: prevState.businessInfo.IF || '', 
-          taxeProfessionnelle: prevState.businessInfo.taxeProfessionnelle || '', 
-          ICE: prevState.businessInfo.ICE || '', 
-          telephone: prevState.businessInfo.telephone || '', 
-          website: prevState.businessInfo.website || '', 
-          email: prevState.businessInfo.email || '', 
-          ...data.businessInfo
+          ...data.businessInfo || {}
         }
       }));
     } catch (error) {
@@ -104,7 +97,7 @@ const ConfigurationForm = () => {
     });
   };
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
 
@@ -130,12 +123,13 @@ const ConfigurationForm = () => {
         }
       };
 
-      await api.patch('/configs', dataToSend);
+      const response = await api.patch('/configs', dataToSend);
+      console.log('Configuration saved:', response);
   
       toast.success('Configuration saved successfully');
     } catch (error) {
-      console.error('Error saving config:', error);
-      toast.error(error.message);
+      console.error('Error saving config:', error.response?.data || error.message);
+      toast.error(error.response?.data?.error || error.message || 'Failed to save configuration');
     } finally {
       setSaving(false);
     }

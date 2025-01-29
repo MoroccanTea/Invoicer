@@ -9,11 +9,11 @@ const configSchema = new mongoose.Schema({
     type: String,
     default: 'INV'
   },
-  taxRate: {
+  defaultTaxRate: {
     type: Number,
-    default: 0.2,
+    default: 0,
     min: 0,
-    max: 1
+    max: 100
   },
   currency: {
     code: {
@@ -25,11 +25,25 @@ const configSchema = new mongoose.Schema({
       default: '$'
     }
   },
+  categories: [{
+    name: {
+      type: String,
+      required: true
+    },
+    code: {
+      type: String,
+      required: true,
+      maxlength: 3
+    }
+  }],
   businessInfo: {
-    name: String,
-    address: String,
-    email: String,
-    phone: String
+    CNIE: String,
+    IF: String,
+    taxeProfessionnelle: String,
+    ICE: String,
+    telephone: String,
+    website: String,
+    email: String
   }
 }, {
   timestamps: true
