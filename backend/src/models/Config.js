@@ -1,6 +1,10 @@
 const mongoose = require('mongoose');
 
 const configSchema = new mongoose.Schema({
+  firstLaunch: {
+    type: Boolean,
+    default: true
+  },
   allowRegistration: {
     type: Boolean,
     default: true

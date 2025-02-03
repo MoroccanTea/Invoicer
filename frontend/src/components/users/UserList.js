@@ -1,20 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 import api from '../../utils/api';
+import ConfirmationModal from '../common/ConfirmationModal';
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [deleteUserId, setDeleteUserId] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const fetchUsers = async () => {
+  const fetchUsers = async (page = 1) => {
     try {
-      const response = await api.get('/users');
+      setLoading(true);
+      const response = await api.get(`/users?page=${page}`);
+      setTotalPages(response.totalPages || 1);
       setUsers(response);
       setLoading(false);
     } catch (err) {
@@ -23,15 +26,36 @@ const UserList = () => {
     }
   };
 
-  const handleDelete = async (userId) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
-      try {
-        await api.delete(`/users/${userId}`);
-        setUsers(users.filter(user => user._id !== userId));
-      } catch (err) {
-        setError(err.response?.data?.error || 'Failed to delete user');
-      }
+  const handlePageChange = async (page) => {
+    setCurrentPage(page);
+    await fetchUsers(page);
+  };
+
+  useEffect(() => {
+    fetchUsers(currentPage);
+  }, []);
+
+  const handleDeleteUser = (userId) => {
+    setDeleteUserId(userId);
+  };
+
+  const confirmDeleteUser = async () => {
+    if (!deleteUserId) return;
+
+    try {
+      await api.delete(`/users/${deleteUserId}`);
+      setUsers(users.filter(user => user._id !== deleteUserId));
+      setDeleteUserId(null);
+      toast.success('User deleted successfully');
+    } catch (err) {
+      const errorMsg = err.response?.data?.error || 'Failed to delete user';
+      toast.error(errorMsg);
+      setError(errorMsg);
     }
+  };
+
+  const cancelDelete = () => {
+    setDeleteUserId(null);
   };
 
   if (loading) return <div className="text-center dark:bg-dark-background dark:text-dark-text">Loading...</div>;
@@ -88,7 +112,7 @@ const UserList = () => {
                       Edit
                     </button>
                     <button
-                      onClick={() => handleDelete(user._id)}
+                      onClick={() => handleDeleteUser(user._id)}
                       className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-3 rounded"
                     >
                       Delete
@@ -100,6 +124,38 @@ const UserList = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-4">
+          <nav>
+            <ul className="flex">
+              {[...Array(totalPages)].map((_, index) => (
+                <li key={index}>
+                  <button 
+                    onClick={() => handlePageChange(index + 1)}
+                    className={`mx-1 px-3 py-1 rounded ${
+                      currentPage === index + 1 
+                        ? 'bg-indigo-600 text-white dark:bg-indigo-500' 
+                        : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
+                    }`}
+                  >
+                    {index + 1}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </div>
+      )}
+
+      <ConfirmationModal 
+        isOpen={!!deleteUserId}
+        onClose={cancelDelete}
+        onConfirm={confirmDeleteUser}
+        title="Delete User"
+        message="Are you sure you want to delete this user? This action cannot be undone."
+      />
     </div>
   );
 };

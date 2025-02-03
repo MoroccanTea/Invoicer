@@ -1,48 +1,64 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const morgan = require('morgan');
 const path = require('path');
 const errorHandler = require('./middlewares/errorHandler');
 const rateLimit = require('express-rate-limit');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
-const { connectRedis, redisClient } = require('./db/redis');
+const { connectRedis, redisClient, isConnected: isRedisConnected } = require('./db/redis');
 const mongoose = require('mongoose');
 require('dotenv').config();
-
-// Initialize Redis connection
-connectRedis();
-
-// Configuration initialization
-const initializeConfig = async () => {
-  try {
-    const Config = require('./models/Config');
-    const existingConfig = await Config.findOne();
-    
-    if (!existingConfig) {
-      const initialConfig = new Config({
-        owner: null,
-        allowRegistration: true
-      });
-      await initialConfig.save();
-      console.log('Initial configuration created');
-    }
-  } catch (error) {
-    console.error('Failed to initialize configuration:', error);
-  }
-};
 
 // Create express app
 const app = express();
 
-// Initialize config before starting server
-initializeConfig();
+// Trust proxy - required for proper IP handling behind nginx
+app.set('trust proxy', 1);  // Trust first proxy hop (e.g., nginx)
+
+// Initialize MongoDB connection
+const connectDB = require('./db/mongoose');
+
+// Initialize services
+const initializeServices = async () => {
+  try {
+    // Connect to MongoDB first
+    await connectDB();
+    
+    // Initialize Redis (skipped in development)
+    await connectRedis();
+
+    console.log('All services initialized successfully');
+  } catch (error) {
+    console.error('Failed to initialize services:', error);
+    process.exit(1);
+  }
+};
+
+// Initialize services before starting server
+initializeServices().catch(error => {
+  console.error('Failed to initialize services:', error);
+  process.exit(1);
+});
+
+// Handle process termination
+process.on('SIGINT', async () => {
+  try {
+    await mongoose.connection.close();
+    console.log('MongoDB connection closed through app termination');
+    process.exit(0);
+  } catch (err) {
+    console.error('Error during app termination:', err);
+    process.exit(1);
+  }
+});
 
 // Health check endpoint
 app.get('/status', async (req, res) => {
   const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
-  const redisStatus = await redisClient.ping().then(() => 'connected').catch(() => 'error');
+  const redisStatus = process.env.NODE_ENV === 'development'
+    ? 'disabled in development'
+    : isRedisConnected() ? 'connected' : 'error';
   
   res.json({
     status: 'ok',
@@ -62,10 +78,34 @@ const limiter = rateLimit({
   legacyHeaders: false
 });
 
-// Middleware
-app.use(helmet());
-app.use(cors());
-app.use(morgan('dev'));
+// Configure Helmet based on environment
+if (process.env.NODE_ENV !== 'production') {
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: "cross-origin" },
+      crossOriginOpenerPolicy: { policy: "unsafe-none" },
+      contentSecurityPolicy: false,
+    })
+  );
+} else {
+  app.use(helmet()); // Default strict configuration for production
+}
+
+// CORS configuration
+const corsOptions = {
+  origin: ['http://localhost:3000', 'http://localhost', 'http://localhost:80'],
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  methods: ['GET', 'PUT', 'POST', 'DELETE', 'PATCH', 'OPTIONS'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+};
+
+// Apply CORS middleware
+app.use(cors(corsOptions));
+
+// Handle preflight requests
+app.options('*', cors(corsOptions));
 app.use(limiter);
 app.use(express.json());
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
@@ -91,12 +131,6 @@ app.use('/api/*', (req, res) => {
   res.status(404).json({ error: 'API endpoint not found' });
 });
 
-// Serve static files in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, 'client/build')));
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
-  });
-}
+// No static file serving needed - handled by frontend container
 
 module.exports = app;

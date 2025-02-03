@@ -2,51 +2,47 @@ services:
   mongodb:
     image: mongo:latest
     container_name: invoicer_mongodb
-    restart: always
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
     ports:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
+    restart: unless-stopped
 
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: invoicer_backend
-    restart: always
-    environment:
-      - NODE_ENV=production
-      - MONGODB_URI=mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASSWORD}@mongodb:27017
-      - JWT_SECRET=${JWT_SECRET}
-      - PORT=5000
-      - REDIS_URL=redis://redis:6379
+    env_file:
+      - backend/.env
     ports:
       - "5000:5000"
     depends_on:
       - mongodb
+      - redis
+    restart: unless-stopped
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: invoicer_frontend
-    restart: always
     ports:
       - "80:80"
     depends_on:
       - backend
+    restart: unless-stopped
 
   redis:
     image: redis:alpine
     container_name: invoicer_redis
-    restart: always
-    ports:
-      - "6379:6379"
+    command: redis-server --appendonly yes --appendfsync everysec
     volumes:
       - redis_data:/data
+    restart: unless-stopped
 
 volumes:
   mongodb_data:

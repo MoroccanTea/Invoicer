@@ -2,33 +2,40 @@ const Config = require('../models/Config');
 
 module.exports = async (req, res, next) => {
   try {
-    // Get or create user-specific config if none exists
-    let config = req.user ? await Config.findOne({ owner: req.user._id }) : await Config.findOne();
+    // Get all configs and handle duplicates
+    const configs = await Config.find();
     
-    // Convert legacy string currency format to object
-    if (config && typeof config.currency === 'string') {
-      config.currency = {
-        code: config.currency,
-        symbol: '$'
-      };
-      await config.save();
-    }
-
-    if (!config) {
+    if (configs.length > 1) {
+      // Keep the first config and delete the rest
+      const [keep, ...remove] = configs;
+      await Config.deleteMany({ _id: { $in: remove.map(c => c._id) } });
+      config = keep;
+    } else if (configs.length === 1) {
+      config = configs[0];
+    } else {
       config = await Config.create({
-        owner: req.user?._id,
         allowRegistration: true,
-        invoicePrefix: 'INV',
-        taxRate: 0.2,
+        defaultTaxRate: 0,
         currency: {
           code: 'USD',
           symbol: '$'
         },
+        categories: [
+          { name: 'Teaching', code: 'TCH' },
+          { name: 'Development', code: 'DEV' },
+          { name: 'Consulting', code: 'CNS' },
+          { name: 'Pentesting', code: 'PNT' },
+          { name: 'Support', code: 'SPT' },
+          { name: 'Other', code: 'OTH' }
+        ],
         businessInfo: {
-          name: 'My Business',
-          address: '',
-          email: '',
-          phone: ''
+          CNIE: '',
+          IF: '',
+          taxeProfessionnelle: '',
+          ICE: '',
+          telephone: '',
+          website: '',
+          email: ''
         }
       });
     }

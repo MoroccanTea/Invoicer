@@ -7,16 +7,24 @@ const options = {
     info: {
       title: 'Invoicer API',
       version: packageJson.version,
-      description: 'API for managing invoices and related entities',
+      description: 'Comprehensive API for managing invoices, clients, projects, and user authentication',
       contact: {
         name: "API Support",
         email: "support@invoicer.com"
+      },
+      license: {
+        name: "MIT License",
+        url: "https://opensource.org/licenses/MIT"
       }
     },
     servers: [
       {
         url: "http://localhost:3000/api/v1",
-        description: "Development server"
+        description: "Local development server"
+      },
+      {
+        url: "https://api.invoicer.com/v1",
+        description: "Production server"
       }
     ],
     components: {
@@ -25,10 +33,11 @@ const options = {
           type: 'http',
           scheme: 'bearer',
           bearerFormat: 'JWT',
-          description: 'JWT Authorization header using the Bearer scheme'
+          description: 'JWT Authorization header using the Bearer scheme. Example: "Authorization: Bearer <token>"'
         }
       },
       schemas: {
+        // Existing schemas from previous configuration
         User: {
           type: 'object',
           required: ['name', 'email', 'password'],
@@ -140,6 +149,45 @@ const options = {
             updatedAt: { type: 'string', format: 'date-time' }
           }
         },
+        Project: {
+          type: 'object',
+          required: ['name', 'client'],
+          properties: {
+            _id: { type: 'string', example: '60a3e5a8e6b940001f6d4e1a' },
+            name: { type: 'string', example: 'Website Redesign' },
+            client: { 
+              type: 'string', 
+              description: 'Reference to Client document',
+              example: '64a1b5c3f8a9b6e7d4f3c2a1' 
+            },
+            description: { 
+              type: 'string', 
+              example: 'Complete redesign of company website' 
+            },
+            status: { 
+              type: 'string', 
+              enum: ['pending', 'in-progress', 'completed', 'on-hold'],
+              default: 'pending',
+              example: 'in-progress' 
+            },
+            startDate: { 
+              type: 'string', 
+              format: 'date',
+              example: '2024-01-15' 
+            },
+            endDate: { 
+              type: 'string', 
+              format: 'date',
+              example: '2024-03-15' 
+            },
+            budget: { 
+              type: 'number', 
+              example: 5000.00 
+            },
+            createdAt: { type: 'string', format: 'date-time' },
+            updatedAt: { type: 'string', format: 'date-time' }
+          }
+        },
         Error: {
           type: 'object',
           properties: {
@@ -160,6 +208,7 @@ const options = {
         }
       },
       responses: {
+        // Existing responses from previous configuration
         UnauthorizedError: {
           description: 'Invalid or missing authentication token',
           content: {
@@ -246,7 +295,15 @@ const options = {
     },
     security: [{
       bearerAuth: []
-    }]
+    }],
+    tags: [
+      { name: 'Authentication', description: 'User authentication and authorization' },
+      { name: 'Invoices', description: 'Invoice management operations' },
+      { name: 'Clients', description: 'Client management operations' },
+      { name: 'Projects', description: 'Project management operations' },
+      { name: 'Users', description: 'User management operations' },
+      { name: 'Configuration', description: 'System configuration operations' }
+    ]
   },
   apis: ['./src/routes/*.js'],
 };

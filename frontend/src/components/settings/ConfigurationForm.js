@@ -29,7 +29,9 @@ const ConfigurationForm = () => {
       { name: 'Teaching', code: 'TCH' },
       { name: 'Development', code: 'DEV' },
       { name: 'Consulting', code: 'CNS' },
-      { name: 'Pentesting', code: 'PEN' }
+      { name: 'Pentesting', code: 'PNT' },
+      { name: 'Support', code: 'SPT' },
+      { name: 'Other', code: 'OTH' }
     ]
   });
 
@@ -48,6 +50,7 @@ const ConfigurationForm = () => {
       setFormData(prevState => ({
         ...prevState,
         ...data,
+        categories: data.categories?.length ? data.categories : prevState.categories,
         businessInfo: {
           ...data.businessInfo || {}
         }

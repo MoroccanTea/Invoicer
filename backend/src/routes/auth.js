@@ -90,8 +90,36 @@ router.post('/register', loadConfig, async (req, res) => {
     const { name, email, password } = req.body;
     const user = new User({ name, email, password });
     await user.save();
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-    res.status(201).json({ user, token });
+
+    // Generate access token (short-lived)
+    const token = jwt.sign(
+      { id: user._id }, 
+      process.env.JWT_SECRET, 
+      { expiresIn: '15m' }
+    );
+    
+    // Generate refresh token (long-lived)
+    const refreshToken = jwt.sign(
+      { id: user._id }, 
+      process.env.JWT_REFRESH_SECRET, 
+      { expiresIn: '7d' }
+    );
+    
+    // Save refresh token to user
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    // Return user without sensitive information
+    const { password: _, refreshToken: __, ...userWithoutSensitive } = user.toObject();
+
+    // Set Access-Control-Allow-Credentials header explicitly
+    res.header('Access-Control-Allow-Credentials', 'true');
+    
+    res.status(201).json({ 
+      user: userWithoutSensitive, 
+      token,
+      refreshToken 
+    });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -156,10 +184,108 @@ router.post('/login', async (req, res) => {
     if (!user.isActivated) {
       throw new Error('Account is disabled');
     }
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-    res.json({ user, token });
+    
+    // Generate access token (short-lived)
+    const token = jwt.sign(
+      { id: user._id }, 
+      process.env.JWT_SECRET, 
+      { expiresIn: '15m' }
+    );
+    
+    // Generate refresh token (long-lived)
+    const refreshToken = jwt.sign(
+      { id: user._id }, 
+      process.env.JWT_REFRESH_SECRET, 
+      { expiresIn: '7d' }
+    );
+    
+    // Save refresh token to user
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    // Return user without sensitive information
+    const { password: _, refreshToken: __, ...userWithoutSensitive } = user.toObject();
+
+    // Set Access-Control-Allow-Credentials header explicitly
+    res.header('Access-Control-Allow-Credentials', 'true');
+    
+    res.json({ 
+      user: userWithoutSensitive, 
+      token,
+      refreshToken 
+    });
   } catch (error) {
     res.status(401).json({ error: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /auth/refresh:
+ *   post:
+ *     summary: Refresh authentication token
+ *     tags: [Authentication]
+ *     description: Generate a new access token using a valid refresh token
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [refreshToken]
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: New access token generated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *       401:
+ *         description: Invalid or expired refresh token
+ */
+router.post('/refresh', async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+    
+    if (!refreshToken) {
+      return res.status(401).json({ error: 'Refresh token required' });
+    }
+
+    // Verify refresh token
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+    
+    // Find user with this refresh token
+    const user = await User.findOne({ 
+      _id: decoded.id, 
+      refreshToken 
+    });
+
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid refresh token' });
+    }
+
+    // Generate new access token
+    const newAccessToken = jwt.sign(
+      { id: user._id }, 
+      process.env.JWT_SECRET, 
+      { expiresIn: '15m' }
+    );
+
+    // Set Access-Control-Allow-Credentials header explicitly
+    res.header('Access-Control-Allow-Credentials', 'true');
+    
+    res.json({ token: newAccessToken });
+  } catch (error) {
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ error: 'Refresh token expired' });
+    }
+    res.status(401).json({ error: 'Invalid refresh token' });
   }
 });
 
@@ -199,6 +325,9 @@ router.get('/verify', auth, async (req, res) => {
     // Token is already verified by auth middleware
     // Return user data without sensitive information
     const { password, tokens, ...userWithoutSensitive } = req.user.toObject();
+    // Set Access-Control-Allow-Credentials header explicitly
+    res.header('Access-Control-Allow-Credentials', 'true');
+    
     res.json({ user: userWithoutSensitive });
   } catch (error) {
     res.status(401).json({ error: 'Invalid token' });

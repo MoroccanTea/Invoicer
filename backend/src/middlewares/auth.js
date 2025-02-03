@@ -6,25 +6,32 @@ const auth = async (req, res, next) => {
     const token = req.header('Authorization')?.replace('Bearer ', '');
     
     if (!token) {
-      throw new Error('No token provided');
+      return res.status(401).json({ error: 'No token provided' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id);
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const user = await User.findById(decoded.id);
 
-    if (!user) {
-      throw new Error('User not found');
+      if (!user) {
+        return res.status(401).json({ error: 'User not found' });
+      }
+
+      if (!user.isActivated) {
+        return res.status(403).json({ error: 'Account is disabled' });
+      }
+
+      req.token = token;
+      req.user = user;
+      next();
+    } catch (verifyError) {
+      if (verifyError.name === 'TokenExpiredError') {
+        return res.status(401).json({ error: 'Token expired', tokenExpired: true });
+      }
+      return res.status(401).json({ error: 'Invalid token' });
     }
-
-    if (!user.isActivated) {
-      return res.status(403).json({ error: 'Account is disabled' });
-    }
-
-    req.token = token;
-    req.user = user;
-    next();
   } catch (error) {
-    res.status(401).json({ error: 'Please authenticate' });
+    res.status(401).json({ error: 'Authentication failed' });
   }
 };
 

@@ -101,13 +101,15 @@ const UserForm = () => {
           delete updateData.password;
         }
         await api.put(`/users/${id}`, updateData);
+        toast.success('User updated successfully');
       } else {
         await api.post('/users', formData);
+        toast.success('User created successfully');
       }
       navigate('/users');
     } catch (err) {
       console.error('Error saving user:', err);
-      const errorMsg = err.message || 'Failed to save user';
+      const errorMsg = err.response?.data?.error || err.message || 'Failed to save user';
       toast.error(errorMsg);
       setErrors({ server: errorMsg });
     } finally {

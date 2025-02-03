@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import { AuthProvider } from './context/AuthContext';
 import { DarkModeProvider } from './context/DarkModeContext';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -34,19 +35,20 @@ import UserForm from './components/users/UserForm';
 
 function App() {
   return (
-    <DarkModeProvider>
-      <div className="min-h-screen bg-white dark:bg-dark-background text-black dark:text-dark-text transition-colors duration-300">
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 3000,
-            style: {
-              background: '#363636',
-              color: '#fff',
-            },
-          }}
-        />
-        <Routes>
+    <AuthProvider>
+      <DarkModeProvider>
+        <div className="min-h-screen bg-white dark:bg-dark-background text-black dark:text-dark-text transition-colors duration-300">
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 3000,
+              style: {
+                background: '#363636',
+                color: '#fff',
+              },
+            }}
+          />
+          <Routes>
           {/* Public routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -97,9 +99,10 @@ function App() {
 
           {/* Catch all */}
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
-        </Routes>
-      </div>
-    </DarkModeProvider>
+          </Routes>
+        </div>
+      </DarkModeProvider>
+    </AuthProvider>
   );
 }
 

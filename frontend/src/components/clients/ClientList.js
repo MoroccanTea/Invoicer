@@ -3,44 +3,66 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-hot-toast';
 import api from '../../utils/api';
+import ConfirmationModal from '../common/ConfirmationModal';
 
 const ClientList = () => {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [deleteClientId, setDeleteClientId] = useState(null);
   const { token } = useAuth();
 
-  useEffect(() => {
-    const fetchClients = async () => {
-      try {
-        const data = await api.get(`/clients`);
-        setClients(data);
-      } catch (error) {
-        console.error('Error fetching clients:', error);
-      } finally {
-        setLoading(false);
+  const fetchClients = async (page = 1) => {
+    try {
+      setLoading(true);
+      const data = await api.get(`/clients?page=${page}`);
+      setTotalPages(data.totalPages || 1);
+      setClients(data);
+      if (!data.length) {
+        toast('No clients found.', { icon: '😢' });
       }
-    };
+    } catch (error) {
+      console.error('Error fetching clients:', error);
+      toast.error('Failed to fetch clients');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchClients();
+  const handlePageChange = async (page) => {
+    setCurrentPage(page);
+    await fetchClients(page);
+  };
+
+  useEffect(() => {
+    fetchClients(currentPage);
   }, [token]);
 
   if (loading) {
     return <div className="flex justify-center items-center h-64 dark:bg-dark-background dark:text-dark-text">Loading...</div>;
   }
 
-  const handleDeleteClient = async (clientId) => {
-    if (!window.confirm('Are you sure you want to delete this client?')) {
-      return;
-    }
+  const handleDeleteClient = (clientId) => {
+    setDeleteClientId(clientId);
+  };
+
+  const confirmDeleteClient = async () => {
+    if (!deleteClientId) return;
 
     try {
-      await api.delete(`/clients/${clientId}`);
+      await api.delete(`/clients/${deleteClientId}`);
       toast.success('Client deleted successfully');
       // Update the clients list
-      setClients(clients.filter(client => client._id !== clientId));
+      setClients(clients.filter(client => client._id !== deleteClientId));
+      setDeleteClientId(null);
     } catch (error) {
       toast.error('Error deleting client');
     }
+  };
+
+  const cancelDelete = () => {
+    setDeleteClientId(null);
   };
 
   return (
@@ -54,6 +76,12 @@ const ClientList = () => {
           Add New Client
         </Link>
       </div>
+
+      {clients.length === 0 ? (
+        <div className="flex justify-center items-center h-64 dark:bg-dark-background dark:text-dark-text">
+          No clients found. start by adding a new client.
+        </div>
+      ) : (
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {clients.map((client) => (
@@ -85,6 +113,40 @@ const ClientList = () => {
           </div>
         ))}
       </div>
+
+    )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-4">
+          <nav>
+            <ul className="flex">
+              {[...Array(totalPages)].map((_, index) => (
+                <li key={index}>
+                  <button 
+                    onClick={() => handlePageChange(index + 1)}
+                    className={`mx-1 px-3 py-1 rounded ${
+                      currentPage === index + 1 
+                        ? 'bg-indigo-600 text-white dark:bg-indigo-500' 
+                        : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
+                    }`}
+                  >
+                    {index + 1}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </div>
+      )}
+
+      <ConfirmationModal 
+        isOpen={!!deleteClientId}
+        onClose={cancelDelete}
+        onConfirm={confirmDeleteClient}
+        title="Delete Client"
+        message="Are you sure you want to delete this client? This action cannot be undone."
+      />
     </div>
   );
 };

@@ -58,9 +58,14 @@ const FormInput = ({
             focus:ring-indigo-500 
             dark:focus:ring-indigo-400
             transition-all 
-            duration-200 
+            duration-300 
             ease-in-out
-            ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
+            hover:border-indigo-400 dark:hover:border-indigo-300
+            hover:shadow-md
+            ${disabled 
+              ? 'opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800' 
+              : ''
+            }
             ${className}
           `}
           {...props}

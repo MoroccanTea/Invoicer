@@ -1,158 +1,170 @@
 # Invoicer - Professional Billing Management System
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/MoroccanTea/invoicer)
+![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)
+![Open Source Love](https://badges.frapsoft.com/os/v2/open-source.svg?v=103)
 
-A complete invoice management solution with client tracking, project management, and financial reporting capabilities.
+
+## 📝 Overview
+
+Invoicer is a comprehensive invoice management solution designed to streamline billing processes for businesses and freelancers. With robust features for client tracking, project management, and financial reporting, Invoicer simplifies your financial workflow.
 
 ![Invoicer Interface](https://via.placeholder.com/800x400.png?text=Invoice+Management+Dashboard)
 
-## Key Features
+## ✨ Key Features
 
-- 📝 Create/edit invoices with automatic tax calculations
-- 👥 Manage clients and projects with custom rates
-- 🔒 Role-based access control (Admin/Standard Users)
-- 📊 Generate financial reports and export to PDF
-- 📦 Dockerized development/production environments
-- 🔐 JWT authentication with refresh tokens
-- 📱 Mobile-responsive user interface
+- 📝 **Intelligent Invoice Creation**
+  - Automatic tax calculations
+  - Multiple line item support
+  - Customizable invoice templates
 
-## Technology Stack
+- 👥 **Client & Project Management**
+  - Detailed client profiles
+  - Project-based rate tracking
+  - Comprehensive billing history
 
-**Backend Services**
-- Node.js 18 + Express.js
-- MongoDB with Mongoose ODM
-- JWT Authentication
-- Dockerized MongoDB instance
-- REST API with rate limiting
+- 🔒 **Advanced Security**
+  - Role-based access control
+  - JWT authentication
+  - Secure token management
 
-**Frontend Interface**
-- React 18 with Functional Components
-- React Router 6 for navigation
-- Tailwind CSS + PostCSS styling
-- Context API for state management
-- Axios for API communication
-- React Hot Toast notifications
+- 📊 **Powerful Reporting**
+  - Detailed financial reports
+  - PDF export functionality
+  - Revenue and tax summaries
 
-## Project Structure
+- 🚀 **Modern Tech Stack**
+  - Dockerized deployment
+  - Scalable microservices architecture
+  - Mobile-responsive design
+
+## 🛠 Technology Stack
+
+### Backend
+- **Language**: Node.js 18
+- **Framework**: Express.js
+- **Database**: MongoDB with Mongoose ODM
+- **Authentication**: JWT with refresh tokens
+- **API**: RESTful, with rate limiting
+
+### Frontend
+- **Library**: React 18 (Functional Components)
+- **Routing**: React Router 6
+- **Styling**: Tailwind CSS
+- **State Management**: Context API
+- **HTTP Client**: Axios
+
+## 📂 Project Structure
 
 ```
 invoicer/
 ├── backend/
 │   ├── Dockerfile
 │   ├── src/
-│   │   ├── models/        # Database schemas (Invoice, User, Client, Project)
-│   │   ├── routes/        # API endpoints (auth, invoices, clients, users)
-│   │   ├── middlewares/   # Authentication and error handling
-│   │   └── db/           # MongoDB connection setup
+│   │   ├── models/        # Database schemas
+│   │   ├── routes/        # API endpoints
+│   │   ├── middlewares/   # Request processing
+│   │   └── config/        # Configuration management
+│   └── tests/             # Backend unit & integration tests
+│
 ├── frontend/
 │   ├── Dockerfile
 │   ├── src/
 │   │   ├── components/    # Reusable UI components
-│   │   ├── context/       # Authentication context
-│   │   ├── utils/         # API client configuration
-│   │   └── views/         # Main application screens
-└── docker-compose.yml      # Multi-container orchestration
+│   │   ├── context/       # Global state management
+│   │   ├── utils/         # Utility functions
+│   │   └── views/         # Application screens
+│   └── tests/             # Frontend component tests
+│
+└── docker-compose.yml     # Multi-container orchestration
 ```
 
-## Getting Started
+## 🚀 Quick Start
+
+### Prerequisites
+- Docker
+- Docker Compose
+- Git
 
 ### Development Setup
 
 1. Clone the repository
 ```bash
-git clone https://github.com/your-repository/invoicer.git
+git clone https://github.com/MoroccanTea/invoicer.git
 cd invoicer
 ```
 
-2. Set up environment variables:
+2. Configure environment variables
 ```bash
-# Backend .env
 cp backend/.env.example backend/.env
-
-# Frontend .env
 cp frontend/.env.example frontend/.env
 ```
 
-3. Start development services:
+3. Start development environment
 ```bash
 docker-compose -f docker-compose.dev.yml up --build
 ```
 
-4. Access the application:
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:5000
-- MongoDB: mongodb://localhost:27017/invoicer
+### First-Time Launch
+- **Default Admin**
+  - Email: admin@invoicer.com
+  - Initial password: Generated securely
+  - Location: `backend/initial_admin_password.txt`
 
-### Production Deployment
-```bash
-docker-compose -f docker-compose.prod.yml up --build -d
-```
+**Note**: Change the default password immediately after first login.
 
-## Core Functionality
+## 🔐 Security Best Practices
 
-**Invoice Management**
-- Create invoices with multiple line items
-- Automatic tax calculations (percentage-based)
-- Multiple currency support
-- PDF export functionality
-- Invoice status tracking (Draft/Sent/Paid)
+- Automatic password hashing
+- JWT token rotation
+- Role-based access control
+- Input validation middleware
+- Regular security audits
 
-**User Management**
-- Role-based access control (Admin/User)
-- Password reset functionality
-- User activity logging
-- Session management
+## 📡 API Endpoints
 
-**Reporting**
-- Monthly revenue reports
-- Client billing history
-- Outstanding payments tracking
-- Tax summary reports
+A detailed list of API endpoints for Invoicer is available below in `/api-docs`
 
-## API Documentation
+### Authentication
+| Method | Endpoint           | Description               |
+|--------|--------------------| --------------------------|
+| POST   | `/api/auth/login`  | User authentication      |
+| POST   | `/api/auth/logout` | User logout              |
 
-### Authentication Endpoints
+### Invoices
+| Method | Endpoint             | Description               |
+|--------|----------------------| --------------------------|
+| GET    | `/api/invoices`      | List invoices            |
+| POST   | `/api/invoices`      | Create invoice           |
+| GET    | `/api/invoices/:id`  | Get invoice details      |
 
-| Method | Endpoint       | Description                |
-|--------|----------------|----------------------------|
-| POST   | /api/auth/login     | User authentication        |
-| POST   | /api/auth/register  | New user registration      |
-| POST   | /api/auth/refresh   | Refresh access token       |
+## 🔧 Configuration
 
-### Invoice Endpoints
+Customize your application through environment variables in `.env` files.
 
-| Method | Endpoint             | Description                  |
-|--------|----------------------|------------------------------|
-| GET    | /api/invoices        | List all invoices            |
-| POST   | /api/invoices        | Create new invoice           |
-| GET    | /api/invoices/:id    | Get invoice details          |
-| PATCH  | /api/invoices/:id    | Update existing invoice      |
-| DELETE | /api/invoices/:id    | Delete invoice               |
-| GET    | /api/invoices/export | Export invoices to PDF       |
-
-## Configuration
-
-**Backend Environment Variables**
+**Backend Configuration**
 ```ini
 MONGODB_URI=mongodb://mongo:27017/invoicer
-JWT_SECRET=your_secure_jwt_secret
-JWT_EXPIRES_IN=1h
+JWT_SECRET=your_secure_secret
 PORT=5000
-RATE_LIMIT_WINDOW=15
-RATE_LIMIT_MAX=100
 ```
 
-**Frontend Environment Variables**
+**Frontend Configuration**
 ```ini
 REACT_APP_API_BASE_URL=http://localhost:5000
-REACT_APP_DEFAULT_CURRENCY=USD
-REACT_APP_PAGE_SIZE=10
+REACT_APP_CURRENCY=USD
 ```
 
-## License
+## 🤝 Contributing
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and development process.
 
-## Support
+## 📄 License
 
-For support or feature requests, please [open an issue](https://github.com/your-repository/invoicer/issues).
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for more details.
+
+## 🆘 Support
+
+- [Open an Issue](https://github.com/MoroccanTea/invoicer/issues)
+- Email: essadhamza@outlook.fr

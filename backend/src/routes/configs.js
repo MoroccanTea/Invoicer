@@ -57,9 +57,9 @@ router.patch('/', auth, adminAuth, async (req, res) => {
       return res.status(400).json({ error: 'Invalid updates!' });
     }
 
-    let config = await Config.findOne({ owner: req.user._id });
+    let config = await Config.findOne();
     if (!config) {
-      config = new Config({ owner: req.user._id });
+      config = new Config();
     }
 
     // Handle nested updates

@@ -21,7 +21,6 @@ const projectSchema = new mongoose.Schema({
     category: {
       type: String,
       required: true,
-      enum: ['TEACHING', 'DEVELOPMENT', 'CONSULTING', 'PENTESTING'].map(cat => cat.toLowerCase()),
     },
     rate: {
       type: Number,

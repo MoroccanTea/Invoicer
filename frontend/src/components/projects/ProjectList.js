@@ -3,20 +3,25 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-hot-toast';
 import api from '../../utils/api';
+import ConfirmationModal from '../common/ConfirmationModal';
 
 const ProjectList = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [deleteProjectId, setDeleteProjectId] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
   const { token } = useAuth();
 
-  useEffect(() => {
-    fetchProjects();
-  }, []);
-
-  const fetchProjects = async () => {
+  const fetchProjects = async (page = 1) => {
     try {
-      const data = await api.get('/projects');
+      setLoading(true);
+      const data = await api.get(`/projects?page=${page}`);
+      setTotalPages(data.totalPages || 1);
       setProjects(data);
+      if (!data.length) {
+        toast('No projects found.', { icon: '😢' });
+      }
     } catch (error) {
       console.error('Error loading projects:', error);
       toast.error(error.message || 'Error loading projects');
@@ -25,17 +30,35 @@ const ProjectList = () => {
     }
   };
 
-  const handleDeleteProject = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this project?')) return;
+  const handlePageChange = async (page) => {
+    setCurrentPage(page);
+    await fetchProjects(page);
+  };
+
+  useEffect(() => {
+    fetchProjects(currentPage);
+  }, []);
+
+  const handleDeleteProject = (id) => {
+    setDeleteProjectId(id);
+  };
+
+  const confirmDeleteProject = async () => {
+    if (!deleteProjectId) return;
 
     try {
-      await api.delete(`/projects/${id}`);
+      await api.delete(`/projects/${deleteProjectId}`);
       toast.success('Project deleted successfully');
       fetchProjects();
+      setDeleteProjectId(null);
     } catch (error) {
       console.error('Error deleting project:', error);
       toast.error(error.message || 'Error deleting project');
     }
+  };
+
+  const cancelDelete = () => {
+    setDeleteProjectId(null);
   };
 
   if (loading) {
@@ -54,6 +77,11 @@ const ProjectList = () => {
         </Link>
       </div>
 
+      {projects.length === 0 ? (
+        <div className="flex justify-center items-center h-64 dark:bg-dark-background dark:text-dark-text">
+          No projects found. start by creating a new project.
+        </div>
+      ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {projects.map((project) => (
           <div key={project._id} className="p-4 border rounded-lg shadow bg-white dark:bg-dark-secondary dark:border-gray-700">
@@ -88,6 +116,39 @@ const ProjectList = () => {
           </div>
         ))}
       </div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-4">
+          <nav>
+            <ul className="flex">
+              {[...Array(totalPages)].map((_, index) => (
+                <li key={index}>
+                  <button 
+                    onClick={() => handlePageChange(index + 1)}
+                    className={`mx-1 px-3 py-1 rounded ${
+                      currentPage === index + 1 
+                        ? 'bg-indigo-600 text-white dark:bg-indigo-500' 
+                        : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
+                    }`}
+                  >
+                    {index + 1}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </div>
+      )}
+
+      <ConfirmationModal 
+        isOpen={!!deleteProjectId}
+        onClose={cancelDelete}
+        onConfirm={confirmDeleteProject}
+        title="Delete Project"
+        message="Are you sure you want to delete this project? This action cannot be undone."
+      />
     </div>
   );
 };

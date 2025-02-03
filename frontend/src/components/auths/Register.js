@@ -11,7 +11,7 @@ import { SunIcon, MoonIcon } from '@heroicons/react/24/solid';
 
 const Register = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { login, user } = useAuth();
   const { isDarkMode, toggleDarkMode } = useDarkMode();
   const [config, setConfig] = useState(null);
   const [formData, setFormData] = useState({
@@ -149,8 +149,13 @@ const Register = () => {
     }
 
     try {
-      await api.post('/auth/register', formData);
-      navigate('/login');
+      const response = await api.post('/auth/register', formData);
+      
+      // Automatically log in the user after successful registration
+      login(response.user, response.token, response.refreshToken);
+      
+      toast.success('Registration successful');
+      navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.error || 'Registration failed');
     } finally {

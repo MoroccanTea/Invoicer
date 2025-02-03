@@ -1,42 +1,74 @@
-# Security Policy
+# Security Policy for Invoicer 🔒
 
-## Reporting Vulnerabilities
+## 📝 Overview
 
-Please report security issues by creating a ticket. I will:
-- Respond within 5 working days
-- Provide regular update emails
-- Publicly acknowledge your contribution (with permission)
+We take security seriously. This document outlines our security practices, vulnerability reporting process, and commitment to maintaining a secure application.
 
-## Security Practices
+## 🛡 Supported Versions
 
-### Authentication
-- JWT tokens with 1h expiration
-- Refresh token rotation
-- Password hashing with bcrypt (10 rounds)
+Security updates are provided for the following versions:
 
-### Input Validation
-- Express Validator middleware
-- Sanitize all user inputs
-- Content Security Policy (CSP) headers
+| Version | Supported          | End of Support     |
+|---------|--------------------|--------------------|
+| 2.x     | ✅ Active Support  | TBD                |
+| 1.x     | ❌ End of Life     | January 1, 2024    |
 
-### Dependency Management
-- Regular `npm audit` checks
-- Dependabot enabled
-- Pinned dependency versions
+## 🚨 Reporting a Vulnerability
 
-### Data Protection
-- MongoDB field-level encryption
-- TLS for all database connections
-- Regular backups to secure storage
+### Responsible Disclosure Process
 
-## Encryption Standards
-- AES-256 for sensitive data
-- TLS 1.3+ for network traffic
-- SSH-RSA 4096 for server access
+1. **Scope**: Report security vulnerabilities in the Invoicer application or its dependencies.
 
-## Supported Versions
-Security updates provided for:
-| Version | Supported          |
-| ------- | ------------------ |
-| 2.x     | :white_check_mark: |
-| 1.x     | :x:                |
+2. **Reporting Channels**:
+   - Email: essadhamza@outlook.fr
+   - GitHub Security Advisory
+   - PGP Key for encrypted communication
+
+3. **What to Include**
+   - Detailed description of the vulnerability
+   - Steps to reproduce
+   - Potential impact
+   - Suggested mitigation or fix
+
+### Vulnerability Handling
+
+- We aim to respond ASAP
+- Regular status updates
+- Credit given to reporters (with permission)
+
+## 🔐 Security Practices
+
+### Authentication & Access Control
+- JWT-based authentication
+- Role-based access control (RBAC)
+- Multi-factor authentication support
+- Password complexity requirements
+  - Minimum 12 characters
+  - Mix of uppercase, lowercase, numbers, symbols
+- Implement account lockout after multiple failed attempts
+
+### Monitoring
+- Comprehensive logging
+
+## 🛠 Security Tools & Practices
+
+### Automated Security Checks
+- GitHub Dependabot for dependency updates
+- Continuous integration security scans
+- Static code analysis
+- Dynamic application security testing (DAST)
+
+## 📞 Contact
+
+For urgent security matters:
+- Email: essadhamza@outlook.fr
+- PGP Fingerprint: TBD
+
+## 🔄 Policy Updates
+
+This policy is subject to change. 
+Last Updated: January 2025
+
+## 🙏 Thank You
+
+Security is a shared responsibility. We appreciate the community's help in keeping Invoicer secure.

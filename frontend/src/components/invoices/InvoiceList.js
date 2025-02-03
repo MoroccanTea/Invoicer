@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
+import ConfirmationModal from '../common/ConfirmationModal';
 
 const InvoiceList = () => {
   const [invoices, setInvoices] = useState([]);
@@ -10,6 +11,7 @@ const InvoiceList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [currencyCode, setCurrencyCode] = useState('USD');
+  const [deleteInvoiceId, setDeleteInvoiceId] = useState(null);
 
   useEffect(() => {
     const fetchConfig = async () => {
@@ -28,57 +30,58 @@ const InvoiceList = () => {
     const fetchInvoices = async () => {
       try {
         setLoading(true);
+        setError(null);
+
+        console.log(`Fetching invoices for page: ${currentPage}`);
+
         const response = await api.get(`/invoices?page=${currentPage}`);
         
-        // Extensive logging for debugging
-        console.log('Full API Response:', JSON.stringify(response, null, 2));
-        console.log('Response Keys:', Object.keys(response));
-
-        // Multiple strategies to extract invoices
-        let fetchedInvoices = [];
-        if (Array.isArray(response)) {
-          fetchedInvoices = response;
-        } else if (response.data && Array.isArray(response.data)) {
-          fetchedInvoices = response.data;
-        } else if (response.data && response.data.invoices) {
-          fetchedInvoices = response.data.invoices;
-        } else if (response.invoices) {
-          fetchedInvoices = response.invoices;
-        }
-
-        console.log('Extracted Invoices:', JSON.stringify(fetchedInvoices, null, 2));
-
-        // Validate and enrich invoices
+        // Simple response handling
+        const data = response || {};
+        const fetchedInvoices = data.invoices || [];
+        
+        setTotalPages(data.totalPages || 1);
+        
+        // Map invoices directly
         const validInvoices = fetchedInvoices
           .filter(invoice => invoice && typeof invoice === 'object' && invoice._id)
           .map(invoice => {
             // Comprehensive amount extraction with detailed logging
-            const extractAmount = (inv) => {
-              const amountCandidates = [
-                inv.totalAmount,
-                inv.amount,
-                inv.total,
-                inv.invoiceTotal,
-                inv.price,
-                inv.value,
-                inv.subtotal,
-                inv.grandTotal,
-                inv.amount_total,
-                inv.total_amount
-              ];
+              const extractAmount = (inv) => {
+                console.log('Processing invoice:', inv); // Debug log
+                const amountCandidates = [
+                  inv.total,
+                  inv.totalAmount,
+                  inv.amount,
+                  inv.invoiceTotal,
+                  inv.price,
+                  inv.value,
+                  inv.subtotal,
+                  inv.grandTotal,
+                  inv.amount_total,
+                  inv.total_amount,
+                  inv?.details?.total,
+                  inv?.items?.reduce((sum, item) => sum + (item.price || 0), 0),
+                ];
 
-              const extractedAmount = amountCandidates.find(amount => 
-                typeof amount === 'number' && !isNaN(amount)
-              );
+                // Convert all candidates to numbers and find the first valid one
+                const extractedAmount = amountCandidates
+                  .map(candidate => {
+                    // Handle currency strings like "$1,234.56"
+                    const num = typeof candidate === 'string' 
+                      ? parseFloat(candidate.replace(/[^0-9.-]/g, '')) 
+                      : Number(candidate);
+                    return !isNaN(num) ? num : null;
+                  })
+                  .find(amount => amount !== null);
 
-              console.log('Amount Extraction Debug:', {
-                invoice: inv,
-                candidates: amountCandidates,
-                extractedAmount: extractedAmount || 'No valid amount found'
-              });
+                console.log('Candidate values:', amountCandidates);
+                console.log('Parsed amounts:', amountCandidates.map(c => 
+                  typeof c === 'string' ? parseFloat(c.replace(/[^0-9.-]/g, '')) : c));
 
-              return extractedAmount || 0;
-            };
+                console.log('Extracted amount:', extractedAmount); // Debug log
+                return extractedAmount || 0;
+              };
 
             return {
               ...invoice,
@@ -95,20 +98,25 @@ const InvoiceList = () => {
             };
           });
 
-        console.log('Processed Invoices:', JSON.stringify(validInvoices, null, 2));
-
-        // Determine total pages
-        const pages = response.data?.totalPages || 
-                      response.totalPages || 
-                      (validInvoices.length > 0 ? 1 : 0);
-        
-        setTotalPages(pages);
         setInvoices(validInvoices);
 
+        if (validInvoices.length === 0) {
+          toast('No invoices found.', { icon: '😢' });
+        }
+
       } catch (error) {
-        console.error('Error fetching invoices:', error);
-        setError(error.message || 'Failed to load invoices');
-        toast.error('Failed to load invoices');
+        console.error('Detailed Error fetching invoices:', {
+          message: error.message,
+          name: error.name,
+          stack: error.stack
+        });
+
+        const errorMessage = error.message.includes('Failed to fetch') 
+          ? 'Unable to connect to server. Please check your internet connection.' 
+          : error.message || 'Failed to load invoices';
+
+        setError(errorMessage);
+        toast.error(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -117,19 +125,84 @@ const InvoiceList = () => {
     fetchInvoices();
   }, [currentPage]);
 
-  const handleDeleteInvoice = async (id) => {
+  const handleDeleteInvoice = (id) => {
+    setDeleteInvoiceId(id);
+  };
+
+  const confirmDeleteInvoice = async () => {
+    if (!deleteInvoiceId) return;
+
     try {
-      await api.delete(`/invoices/${id}`);
-      setInvoices(invoices.filter(invoice => invoice._id !== id));
+      await api.delete(`/invoices/${deleteInvoiceId}`);
+      setInvoices(invoices.filter(invoice => invoice._id !== deleteInvoiceId));
       toast.success('Invoice deleted successfully');
+      setDeleteInvoiceId(null);
     } catch (error) {
       console.error('Error deleting invoice:', error);
       toast.error('Failed to delete invoice');
     }
   };
 
+  const cancelDelete = () => {
+    setDeleteInvoiceId(null);
+  };
+
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage);
+  };
+
+  const handlePdfDownload = (invoice) => {
+    console.log('Attempting to download PDF for invoice:', invoice);
+    
+    // Detailed logging of invoice object
+    console.log('Invoice Details:', {
+      id: invoice._id,
+      number: invoice.invoiceNumber,
+      project: invoice.project,
+      client: invoice.client,
+      total: invoice.total
+    });
+
+    api.downloadPdf(`/invoices/${invoice._id}/pdf`)
+      .then(blob => {
+        console.log('PDF Blob:', blob);
+        console.log('PDF Blob Size:', blob.size);
+        console.log('PDF Blob Type:', blob.type);
+
+        if (blob.size === 0) {
+          throw new Error('Empty PDF file generated');
+        }
+
+        // Verify blob is a valid PDF
+        if (blob.type !== 'application/pdf') {
+          throw new Error(`Invalid PDF MIME type: ${blob.type}`);
+        }
+
+        const link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = `invoice-${invoice.invoiceNumber || invoice._id}.pdf`;
+        
+        // Append to body, click, and remove to handle various browser behaviors
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        toast.success('PDF downloaded successfully');
+      })
+      .catch(error => {
+        console.error('PDF download error:', {
+          message: error.message,
+          name: error.name,
+          stack: error.stack
+        });
+        
+        // More informative error message
+        const errorMessage = error.message.includes('Failed to fetch') 
+          ? 'Unable to connect to server. Please check your internet connection.' 
+          : `Failed to download PDF: ${error.message}`;
+        
+        toast.error(errorMessage);
+      });
   };
 
   if (loading) {
@@ -157,8 +230,8 @@ const InvoiceList = () => {
       </div>
 
       {invoices.length === 0 ? (
-        <div className="text-center text-gray-500 dark:text-gray-400">
-          No invoices found
+        <div className="flex justify-center items-center h-64 dark:bg-dark-background dark:text-dark-text">
+          No invoices found, start by creating a new invoice.
         </div>
       ) : (
         <div className="bg-white dark:bg-dark-secondary shadow rounded-lg overflow-x-auto">
@@ -231,6 +304,12 @@ const InvoiceList = () => {
                       >
                         Delete
                       </button>
+                      <button 
+                        onClick={() => handlePdfDownload(invoice)}
+                        className="bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-3 rounded"
+                      >
+                        PDF
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -263,6 +342,14 @@ const InvoiceList = () => {
           </nav>
         </div>
       )}
+
+      <ConfirmationModal 
+        isOpen={!!deleteInvoiceId}
+        onClose={cancelDelete}
+        onConfirm={confirmDeleteInvoice}
+        title="Delete Invoice"
+        message="Are you sure you want to delete this invoice? This action cannot be undone."
+      />
     </div>
   );
 };

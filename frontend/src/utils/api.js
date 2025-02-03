@@ -1,14 +1,23 @@
 const createApiClient = () => {
+    // Always use relative path since nginx handles routing
+    const baseURL = '/api/v1';
+    
     const getToken = () => localStorage.getItem('token');
-    const baseURL = 'http://localhost:5000/api/v1'; // Direct backend connection
-    // Ensure baseURL has single /api/v1 prefix
+    const getRefreshToken = () => localStorage.getItem('refreshToken');
+    
+    const getHeaders = (token = getToken()) => {
+      const headers = {
+        'Content-Type': 'application/json'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      return headers;
+    };
   
-    const getHeaders = () => ({
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${getToken()}`
-    });
-  
-    const handleResponse = async (response) => {
+    const handleResponse = async (response, config = {}) => {
       console.log('API Response:', response);
       
       if (!response.ok) {
@@ -28,48 +37,166 @@ const createApiClient = () => {
       return data;
     };
   
+    const refreshAccessToken = async () => {
+      console.log('Attempting to refresh token');
+      console.log('Available tokens in localStorage:', {
+        token: localStorage.getItem('token'),
+        refreshToken: localStorage.getItem('refreshToken')
+      });
+
+      const refreshToken = getRefreshToken();
+      if (!refreshToken) {
+        console.error('No refresh token found in localStorage');
+        throw new Error('No refresh token available');
+      }
+      
+      try {
+        console.log('Sending refresh token request');
+          const response = await fetch(`${baseURL}/auth/refresh`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${refreshToken}`
+            },
+            body: JSON.stringify({ refreshToken })
+          });
+        
+        console.log('Refresh token response status:', response.status);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Refresh token error:', errorText);
+          throw new Error('Failed to refresh token');
+        }
+        
+        const { token: newAccessToken } = await response.json();
+        console.log('New access token received');
+        localStorage.setItem('token', newAccessToken);
+        return newAccessToken;
+      } catch (error) {
+        console.error('Token refresh error:', error);
+        // If refresh fails, logout user
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+        throw error;
+      }
+    };
+  
+    const fetchWithRetry = async (endpoint, config = {}) => {
+      try {
+        const fullURL = `${baseURL}${endpoint}`;
+        console.log('Fetching URL:', fullURL);
+        console.log('Fetch Config:', config);
+
+        const response = await fetch(fullURL, {
+          ...config,
+          headers: endpoint.includes('/auth/login') 
+            ? config.headers // Use only the headers passed in config for login
+            : {
+                ...getHeaders(config.token),
+                ...(config.headers || {})
+              }
+        });
+        
+        // Skip token refresh for login endpoint
+        if (response.status === 401 && !endpoint.includes('/auth/login')) {
+          const newToken = await refreshAccessToken();
+          
+          // Retry the original request with new token
+          return fetch(fullURL, {
+            ...config,
+            headers: {
+              ...getHeaders(newToken),
+              ...(config.headers || {})
+            }
+          });
+        }
+        
+        return response;
+      } catch (error) {
+        console.error('Fetch Error:', error);
+        throw error;
+      }
+    };
+  
     return {
       get: async (endpoint) => {
         console.log(`Fetching endpoint: ${baseURL}${endpoint}`);
-        const response = await fetch(`${baseURL}${endpoint}`, {
-          headers: getHeaders()
+        const response = await fetchWithRetry(endpoint, { 
+          method: 'GET',
+          credentials: 'include'
         });
         return handleResponse(response);
       },
   
       post: async (endpoint, data) => {
-        const response = await fetch(`${baseURL}${endpoint}`, {
+        const response = await fetchWithRetry(endpoint, { 
           method: 'POST',
-          headers: getHeaders(),
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json'
+          },
           body: JSON.stringify(data)
         });
         return handleResponse(response);
       },
   
       put: async (endpoint, data) => {
-        const response = await fetch(`${baseURL}${endpoint}`, {
+        const response = await fetchWithRetry(endpoint, { 
           method: 'PUT',
-          headers: getHeaders(),
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json'
+          },
           body: JSON.stringify(data)
         });
         return handleResponse(response);
       },
 
       patch: async (endpoint, data) => {
-        const response = await fetch(`${baseURL}${endpoint}`, {
+        const response = await fetchWithRetry(endpoint, { 
           method: 'PATCH',
-          headers: getHeaders(),
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json'
+          },
           body: JSON.stringify(data)
         });
         return handleResponse(response);
       },
   
       delete: async (endpoint) => {
-        const response = await fetch(`${baseURL}${endpoint}`, {
+        const response = await fetchWithRetry(endpoint, { 
           method: 'DELETE',
-          headers: getHeaders()
+          credentials: 'include'
         });
         return handleResponse(response);
+      },
+
+      downloadPdf: async (endpoint) => {
+        try {
+          console.log(`Downloading PDF from: ${baseURL}${endpoint}`);
+          const response = await fetchWithRetry(endpoint, { 
+            method: 'GET',
+            headers: {
+              'Accept': 'application/pdf'
+            }
+          });
+          
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error('PDF Download Error:', errorText);
+            throw new Error(`Failed to download PDF: ${errorText}`);
+          }
+          
+          return await response.blob();
+        } catch (error) {
+          console.error('PDF Download Error:', error);
+          throw error;
+        }
       }
     };
   };

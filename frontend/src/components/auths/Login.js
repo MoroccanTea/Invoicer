@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+ import React, { useState } from 'react';
 import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { EnvelopeIcon, LockClosedIcon } from '@heroicons/react/24/solid';
 import { useAuth } from '../../context/AuthContext';
@@ -14,8 +14,10 @@ const Login = () => {
     email: '',
     password: ''
   });
-  const { login, token, error, loading } = useAuth();
+  const { login, token } = useAuth();
   const { isDarkMode, toggleDarkMode } = useDarkMode();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   // If already authenticated, redirect to dashboard
@@ -25,14 +27,33 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError(null);
     
     try {
-      const response = await api.post('/auth/login', formData);
-      login(response.user, response.token);
+      console.log('Login attempt with:', formData);
+      
+      const data = await api.post('/auth/login', formData);
+      console.log('Login response:', data);
+      
+      if (!data.token || !data.refreshToken) {
+        throw new Error('Missing tokens in login response');
+      }
+
+      login(data.user, data.token, data.refreshToken);
+      
+      console.log('Tokens in localStorage after login:', {
+        token: localStorage.getItem('token'),
+        refreshToken: localStorage.getItem('refreshToken')
+      });
+
       navigate('/dashboard');
     } catch (err) {
       console.error('Login error:', err);
+      setError(err.message);
       toast.error('Login failed. Please check your credentials.');
+    } finally {
+      setLoading(false);
     }
   };
 

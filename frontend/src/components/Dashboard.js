@@ -73,7 +73,7 @@ const Dashboard = () => {
         {/* Summary Cards */}
         <div className="bg-white dark:bg-dark-secondary p-4 rounded-lg shadow dark:shadow-lg">
           <h3 className="text-gray-500 dark:text-gray-400">Total Revenue</h3>
-          <p className="text-2xl font-bold dark:text-white">{stats.currency.symbol}{stats.totalRevenue.toLocaleString()}</p>
+          <p className="text-2xl font-bold dark:text-white">{stats.totalRevenue.toLocaleString()}{stats.currency.code}</p>
         </div>
         <div className="bg-white dark:bg-dark-secondary p-4 rounded-lg shadow dark:shadow-lg">
           <h3 className="text-gray-500 dark:text-gray-400">Active Projects</h3>
