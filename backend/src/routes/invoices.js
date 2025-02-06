@@ -8,6 +8,13 @@ const auth = require('../middlewares/auth');
 const { redisClient } = require('../db/redis');
 const PDFDocument = require('pdfkit');
 
+/**
+ * @swagger
+ * tags:
+ *   name: Invoices
+ *   description: Invoice management endpoints
+ */
+
 // Get all invoices with pagination
 router.get('/', auth, async (req, res) => {
   try {
@@ -197,7 +204,6 @@ router.delete('/:id', auth, async (req, res) => {
  */
 router.get('/:id/pdf', auth, async (req, res) => {
   try {
-    // Fetch invoice with full population
     const invoice = await Invoice.findOne({
       _id: req.params.id,
       owner: req.user._id
@@ -210,72 +216,117 @@ router.get('/:id/pdf', auth, async (req, res) => {
       return res.status(404).json({ error: 'Invoice not found' });
     }
 
-    // Fetch user's configuration to get currency details
     const config = await Config.findOne({ owner: req.user._id });
-    const currencyCode = config?.currency?.code || 'USD';
     const currencySymbol = config?.currency?.symbol || '$';
 
-    // Create a new PDF document
-    const doc = new PDFDocument();
-    
-    // Set response headers for PDF download
+    const doc = new PDFDocument({
+      margin: 50,
+      size: 'A4'
+    });
+
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename=invoice-${invoice.invoiceNumber}.pdf`);
-
-    // Pipe the PDF document directly to the response
     doc.pipe(res);
 
-    // PDF Content
-    doc.fontSize(20).text('Invoice', { align: 'center' });
-    doc.moveDown();
+    // Header
+    doc.fontSize(24).text('INVOICE', { align: 'right' });
+    doc.fontSize(10)
+      .text(`Invoice Number: ${invoice.invoiceNumber}`, { align: 'right' })
+      .text(`Date: ${invoice.invoiceDate.toLocaleDateString()}`, { align: 'right' })
+      .text(`Due Date: ${invoice.dueDate.toLocaleDateString()}`, { align: 'right' });
 
-    // Invoice Details
-    doc.fontSize(12)
-       .text(`Invoice Number: ${invoice.invoiceNumber}`, { align: 'left' })
-       .text(`Date: ${invoice.invoiceDate.toLocaleDateString()}`, { align: 'left' })
-       .text(`Due Date: ${invoice.dueDate.toLocaleDateString()}`, { align: 'left' });
+    // Business Info
+    doc.moveDown(2);
+    doc.fontSize(12).text(config?.businessName || 'Business Name');
+    doc.fontSize(10)
+      .text(config?.businessAddress || '')
+      .text(`Tel: ${config?.businessPhone || ''}`)
+      .text(`Email: ${config?.businessEmail || ''}`);
 
-    // Project and Client Details
-    if (invoice.project) {
-      doc.moveDown();
-      
-      if (invoice.project.client) {
-        doc.text(`Client: ${invoice.project.client.name}`, { align: 'left' });
-      }
-      
-      doc.text(`Project: ${invoice.project.name}`, { align: 'left' });
-    }
- 
-    // Invoice Items
-    doc.moveDown();
-    doc.fontSize(14).text('Items', { underline: true });
-    doc.fontSize(10);
+    // Client Info
+    doc.moveDown(2);
+    doc.fontSize(12).font('Helvetica-Bold').text('Bill To:');
+    doc.moveDown(0.5).font('Helvetica');
+    doc.fontSize(10)
+
+    // Format address fields properly
+    const client = invoice.project?.client;
+    const address = {
+      street: client?.street || '',
+      city: client?.city || '',
+      state: client?.state || '',
+      country: client?.country || '',
+      zipCode: client?.zipCode || ''
+    };
+    
+    doc.text(client?.name || '')
+      .text(client?.email || '')
+      .text([
+        address.street,
+        [address.city, address.state, address.zipCode].filter(Boolean).join(', '),
+        address.country
+      ].filter(Boolean).join('\n'));
+
+    // Items Table
+    doc.moveDown(2);
+    const tableTop = doc.y;
+    const tableHeaders = ['Description', 'Quantity', 'Rate', 'Amount'];
+    const columnWidths = [250, 70, 100, 100];
+    let currentY = tableTop;
+
+    // Table Headers
+    doc.fontSize(10).font('Helvetica-Bold');
+    let currentX = 50;
+    tableHeaders.forEach((header, i) => {
+      doc.text(header, currentX, currentY, { width: columnWidths[i], align: i > 0 ? 'right' : 'left' });
+      currentX += columnWidths[i];
+    });
+
+    // Table Lines
+    doc.moveTo(50, currentY + 15).lineTo(550, currentY + 15).stroke();
+    currentY += 25;
+
+    // Table Content
+    doc.font('Helvetica');
     invoice.items.forEach(item => {
-      doc.text(`${item.description} - Qty: ${item.quantity} x ${currencySymbol}${item.rate.toFixed(2)} = ${currencySymbol}${item.amount.toFixed(2)}`);
+      currentX = 50;
+      doc.text(item.description, currentX, currentY, { width: columnWidths[0] });
+      currentX += columnWidths[0];
+      doc.text(item.quantity.toString(), currentX, currentY, { width: columnWidths[1], align: 'right' });
+      currentX += columnWidths[1];
+      doc.text(`${currencySymbol}${item.rate.toFixed(2)}`, currentX, currentY, { width: columnWidths[2], align: 'right' });
+      currentX += columnWidths[2];
+      doc.text(`${currencySymbol}${item.amount.toFixed(2)}`, currentX, currentY, { width: columnWidths[3], align: 'right' });
+      currentY += 20;
     });
 
     // Totals
-    doc.moveDown();
-    doc.fontSize(12)
-       .text(`Subtotal: ${currencySymbol}${invoice.subtotal.toFixed(2)} ${currencyCode}`, { align: 'right' })
-       .text(`Tax (${invoice.taxRate}%): ${currencySymbol}${invoice.taxAmount.toFixed(2)} ${currencyCode}`, { align: 'right' })
-       .text(`Total: ${currencySymbol}${invoice.total.toFixed(2)} ${currencyCode}`, { align: 'right', underline: true });
+    doc.moveTo(50, currentY).lineTo(550, currentY).stroke();
+    currentY += 10;
+    
+    doc.text('Subtotal:', 380, currentY, { width: 100, align: 'right' });
+    doc.text(`${currencySymbol}${invoice.subtotal.toFixed(2)}`, 480, currentY, { width: 70, align: 'right' });
+    currentY += 20;
+    
+    doc.text(`Tax (${invoice.taxRate}%):`, 380, currentY, { width: 100, align: 'right' });
+    doc.text(`${currencySymbol}${invoice.taxAmount.toFixed(2)}`, 480, currentY, { width: 70, align: 'right' });
+    currentY += 20;
+    
+    doc.font('Helvetica-Bold');
+    doc.text('Total:', 380, currentY, { width: 100, align: 'right' });
+    doc.text(`${currencySymbol}${invoice.total.toFixed(2)}`, 480, currentY, { width: 70, align: 'right' });
 
-    // Notes
-    if (invoice.notes) {
-      doc.moveDown()
-         .fontSize(10)
-         .text(`Notes: ${invoice.notes}`);
-    }
+    // Footer
+    doc.fontSize(10).font('Helvetica');
+    doc.text(config?.businessInfo?.ICE || 'Thank you for your business!', 50, 720);
+    doc.text(config?.businessInfo?.telephone || '', 50, 735);
+    doc.text(config?.businessInfo?.email || '', 50, 750);
 
-    // Finalize PDF
     doc.end();
   } catch (error) {
     console.error('PDF generation error:', error);
-    res.status(500).json({ error: 'Error generating PDF', details: error.message });
+    res.status(500).json({ error: 'Error generating PDF' });
   }
 });
-
-// Rest of the existing routes remain the same...
 
 module.exports = router;

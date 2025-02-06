@@ -25,7 +25,7 @@ const connectDB = async () => {
     } catch (error) {
       console.error(`❌ MongoDB connection attempt ${currentTry}/${maxRetries} failed:`, error.message);
       if (error.name === 'MongoServerError') {
-        console.error('MongoDB Error Details:', {
+        console.error('❌ MongoDB Error Details:', {
           code: error.code,
           codeName: error.codeName
         });
@@ -44,16 +44,16 @@ const connectDB = async () => {
 };
 
 mongoose.connection.on('error', err => {
-  console.error('MongoDB error:', err);
+  console.error('❌ MongoDB error:', err);
 });
 
 mongoose.connection.on('disconnected', () => {
-  console.log('MongoDB disconnected. Attempting to reconnect...');
+  console.log('⚠ MongoDB disconnected. Attempting to reconnect...');
   connectDB();
 });
 
 mongoose.connection.on('connected', () => {
-  console.log('MongoDB reconnected successfully');
+  console.log('✅ MongoDB reconnected successfully');
 });
 
 module.exports = connectDB;

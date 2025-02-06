@@ -30,15 +30,7 @@ if (!process.env.MONGODB_URI && process.env.MONGO_ROOT_USER && process.env.MONGO
   process.env.MONGODB_URI = `mongodb://${process.env.MONGO_ROOT_USER}:${process.env.MONGO_ROOT_PASSWORD}@mongodb:27017/invoicer?authSource=admin`;
 }
 
-const PORT = process.env.PORT || 5001;
-
-// Log environment configuration (without sensitive data)
-console.log('Environment Configuration:', {
-  NODE_ENV: process.env.NODE_ENV,
-  PORT: PORT,
-  MONGODB_URI: process.env.MONGODB_URI?.replace(/\/\/[^@]+@/, '//***:***@'),
-  REDIS_URL: process.env.REDIS_URL?.replace(/\/\/[^@]+@/, '//***:***@')
-});
+const PORT = process.env.PORT || 5000;
 
 // Seeding function for first launch
 async function seedFirstLaunch() {
@@ -65,6 +57,19 @@ async function seedFirstLaunch() {
       
       await adminUser.save();
 
+      // Set default categories
+      const defaultCategories =  [
+        { name: 'Teaching', code: 'TCH' },
+        { name: 'Development', code: 'DEV' },
+        { name: 'Consulting', code: 'CNS' },
+        { name: 'Pentesting', code: 'PNT' },
+        { name: 'Support', code: 'SPT' },
+        { name: 'Other', code: 'OTH' }
+      ]
+
+      // save default categories
+      configDoc.categories = defaultCategories;
+
       // Update firstLaunch flag
       configDoc.firstLaunch = false;
       await configDoc.save();
@@ -73,11 +78,12 @@ async function seedFirstLaunch() {
       console.log('Initial admin credentials:');
       console.log('Email: admin@invoicer.com');
       console.log(`Password: ${randomPassword}`);
-      
-      console.log('First launch seeding completed. Admin user created.');
+      console.log('✅ Admin user created.');
+
+      console.log('✅ First launch seeding completed.');
     }
   } catch (error) {
-    console.error('Error during first launch seeding:', error);
+    console.error('❌ Error during first launch seeding:', error);
   }
 }
 
@@ -88,7 +94,7 @@ const startServer = async () => {
     // Connect to MongoDB
     console.log('Connecting to MongoDB...');
     await connectDB();
-    console.log('MongoDB connection successful');
+    console.log('✅ MongoDB connection successful.');
     
     // Perform first launch seeding
     console.log('Checking first launch status...');
@@ -97,12 +103,12 @@ const startServer = async () => {
     // Start HTTP server
     const server = app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
-      console.log('Server initialization complete');
+      console.log('✅ Server initialization complete');
     });
 
     // Handle server errors
     server.on('error', (error) => {
-      console.error('Server error:', error);
+      console.error('❌ Server error:', error);
       if (error.code === 'EADDRINUSE') {
         console.error(`Port ${PORT} is already in use`);
       }

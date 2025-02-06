@@ -142,7 +142,7 @@ router.get('/dashboard', auth, async (req, res) => {
       totalRevenue: invoiceStats[0].totalRevenue[0]?.total || 0,
       activeProjects: statusCountMap['in-progress'] || 0,
       pendingInvoices: invoiceStats[0].statusCounts
-        .filter(s => ['draft', 'sent', 'overdue'].includes(s._id))
+        .filter(s => ['draft', 'sent', 'received', 'paid', 'cancelled'].includes(s._id))
         .reduce((sum, s) => sum + s.count, 0),
       completedProjects: statusCountMap['completed'] || 0,
       revenueByMonth: invoiceStats[0].revenueByMonth,
@@ -152,7 +152,6 @@ router.get('/dashboard', auth, async (req, res) => {
 
   } catch (error) {
     console.error('Dashboard stats error:', error);
-    
     res.status(500).json({ error: 'Error fetching dashboard statistics' });
   }
 });

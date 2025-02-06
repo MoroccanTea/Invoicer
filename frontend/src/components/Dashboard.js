@@ -10,6 +10,7 @@ const Dashboard = () => {
   const [stats, setStats] = useState({
     revenueByMonth: [],
     projectsByCategory: [],
+    categories: {},
     invoiceStatus: [],
     recentActivity: [],
     totalRevenue: 0,
@@ -28,16 +29,22 @@ const Dashboard = () => {
         setLoading(true);
         const data = await api.get('/stats/dashboard');
         const configData = await api.get('/configs');
+
+        const categoriesMap = (configData?.businessInfo?.categories || []).reduce((acc, cat) => {
+          acc[cat.code.toLowerCase()] = cat.name;
+          return acc;
+        }, {});
+
+        const mappedProjects = data.projectsByCategory.map(project => ({
+          name: categoriesMap[project.name.toLowerCase()] || project.name,
+          code: project.name,
+          value: project.value
+        }));
+
         setStats({
-          revenueByMonth: data.revenueByMonth || [],
-          projectsByCategory: data.projectsByCategory || [],
-          invoiceStatus: data.invoiceStatus || [],
-          recentActivity: data.recentActivity || [],
-          totalRevenue: data.totalRevenue || 0,
-          activeProjects: data.activeProjects || 0,
-          pendingInvoices: data.pendingInvoices || 0,
-          completedProjects: data.completedProjects || 0,
-          currency: configData.currency || { code: 'USD', symbol: '$' }
+          ...data,
+          projectsByCategory: mappedProjects,
+          currency: configData?.currency || { code: 'USD', symbol: '$' }
         });
       } catch (error) {
         console.error('Error fetching stats:', error);
@@ -73,7 +80,7 @@ const Dashboard = () => {
         {/* Summary Cards */}
         <div className="bg-white dark:bg-dark-secondary p-4 rounded-lg shadow dark:shadow-lg">
           <h3 className="text-gray-500 dark:text-gray-400">Total Revenue</h3>
-          <p className="text-2xl font-bold dark:text-white">{stats.totalRevenue.toLocaleString()}{stats.currency.code}</p>
+          <p className="text-2xl font-bold dark:text-white">{stats.totalRevenue.toLocaleString()} {stats.currency.code}</p>
         </div>
         <div className="bg-white dark:bg-dark-secondary p-4 rounded-lg shadow dark:shadow-lg">
           <h3 className="text-gray-500 dark:text-gray-400">Active Projects</h3>
@@ -100,7 +107,7 @@ const Dashboard = () => {
               <YAxis />
               <Tooltip />
               <Legend />
-              <Bar dataKey="revenue" fill="#0088FE" />
+              <Bar dataKey="revenue" name="Revenue" fill="#0088FE" />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -118,6 +125,7 @@ const Dashboard = () => {
                 outerRadius={100}
                 fill="#8884d8"
                 dataKey="value"
+                nameKey="name"
                 label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
               >
                 {stats.projectsByCategory.map((entry, index) => (
@@ -157,8 +165,10 @@ const Dashboard = () => {
                       {activity.description}
                     </td>
                     <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-200 dark:border-gray-700">
-                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${activity.status === 'completed' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' :
-                          activity.status === 'in-progress' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400' :
+                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        activity.status === 'completed' || 'paid' || 'received' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' :
+                        activity.status === 'in-progress' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400' :
+                        activity.status === 'cancelled' ? 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400' :
                             'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
                         }`}>
                           {activity.status.charAt(0).toUpperCase() + activity.status.slice(1)}

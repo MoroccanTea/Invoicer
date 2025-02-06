@@ -25,14 +25,7 @@ const ConfigurationForm = () => {
       website: '',
       email: ''
     },
-    categories: [
-      { name: 'Teaching', code: 'TCH' },
-      { name: 'Development', code: 'DEV' },
-      { name: 'Consulting', code: 'CNS' },
-      { name: 'Pentesting', code: 'PNT' },
-      { name: 'Support', code: 'SPT' },
-      { name: 'Other', code: 'OTH' }
-    ]
+    categories: []
   });
 
   useEffect(() => {

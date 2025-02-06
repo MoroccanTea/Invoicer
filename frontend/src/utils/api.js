@@ -88,26 +88,24 @@ const createApiClient = () => {
     const fetchWithRetry = async (endpoint, config = {}) => {
       try {
         const fullURL = `${baseURL}${endpoint}`;
-        console.log('Fetching URL:', fullURL);
-        console.log('Fetch Config:', config);
-
-        const response = await fetch(fullURL, {
+        const fetchConfig = {
           ...config,
           headers: endpoint.includes('/auth/login') 
-            ? config.headers // Use only the headers passed in config for login
+            ? config.headers 
             : {
                 ...getHeaders(config.token),
                 ...(config.headers || {})
-              }
-        });
+              },
+          cache: 'no-store',
+          credentials: 'include'
+        };
+    
+        const response = await fetch(fullURL, fetchConfig);
         
-        // Skip token refresh for login endpoint
         if (response.status === 401 && !endpoint.includes('/auth/login')) {
           const newToken = await refreshAccessToken();
-          
-          // Retry the original request with new token
           return fetch(fullURL, {
-            ...config,
+            ...fetchConfig,
             headers: {
               ...getHeaders(newToken),
               ...(config.headers || {})
@@ -178,21 +176,26 @@ const createApiClient = () => {
 
       downloadPdf: async (endpoint) => {
         try {
-          console.log(`Downloading PDF from: ${baseURL}${endpoint}`);
           const response = await fetchWithRetry(endpoint, { 
             method: 'GET',
             headers: {
-              'Accept': 'application/pdf'
-            }
+              'Accept': 'application/pdf',
+              ...getHeaders()
+            },
+            credentials: 'include'
           });
           
           if (!response.ok) {
             const errorText = await response.text();
-            console.error('PDF Download Error:', errorText);
             throw new Error(`Failed to download PDF: ${errorText}`);
           }
           
-          return await response.blob();
+          const blob = await response.blob();
+          if (blob.size === 0) {
+            throw new Error('Empty PDF generated');
+          }
+          
+          return blob;
         } catch (error) {
           console.error('PDF Download Error:', error);
           throw error;

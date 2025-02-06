@@ -4,6 +4,46 @@ const auth = require('../middlewares/auth');
 const adminAuth = require('../middlewares/adminAuth');
 const Config = require('../models/Config');
 
+/**
+ * @swagger
+ * tags:
+ *   name: Configuration
+ *   description: Application configuration management
+ */
+
+/**
+ * @swagger
+ * /configs:
+ *   get:
+ *     tags: [Configuration]
+ *     summary: Get application configuration
+ *     description: Retrieve the current application configuration
+ *     responses:
+ *       200:
+ *         description: Configuration retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Config'
+ *             example:
+ *               defaultTaxRate: 20
+ *               currency: { code: 'USD', symbol: '$' }
+ *               allowRegistration: true
+ *               businessInfo:
+ *                 CNIE: '123456789'
+ *                 IF: '987654321'
+ *                 taxeProfessionnelle: '456789123'
+ *                 ICE: '321654987'
+ *                 telephone: '+212600000000'
+ *                 website: 'https://example.com'
+ *                 email: 'contact@example.com'
+ *                 categories:
+ *                   - { name: 'Teaching', code: 'TCH' }
+ *                   - { name: 'Development', code: 'DEV' }
+ *       500:
+ *         $ref: '#/components/responses/ServerError'
+ */
+
 // Redirect legacy singular endpoint to plural
 router.get('/config', (req, res) => res.redirect(301, './configs'));
 
@@ -16,11 +56,6 @@ router.get('/', require('../middlewares/loadConfig'), async (req, res) => { // M
       return res.json({
         defaultTaxRate: 0,
         currency: { code: 'USD', symbol: '$' },
-        categories: [
-          { name: 'Teaching', code: 'TCH' },
-          { name: 'Development', code: 'DEV' },
-          { name: 'Consulting', code: 'CNS' }
-        ],
         allowRegistration: true,
         businessInfo: {
           CNIE: '',
@@ -29,7 +64,15 @@ router.get('/', require('../middlewares/loadConfig'), async (req, res) => { // M
           ICE: '',
           telephone: '',
           website: '',
-          email: ''
+          email: '',
+          categories: [
+            { name: 'Teaching', code: 'TCH' },
+            { name: 'Development', code: 'DEV' },
+            { name: 'Consulting', code: 'CNS' },
+            { name: 'Pentesting', code: 'PNT' },
+            { name: 'Support', code: 'SPT' },
+            { name: 'Other', code: 'OTH' }
+          ],
         }
       });
     }
@@ -44,6 +87,51 @@ router.get('/', require('../middlewares/loadConfig'), async (req, res) => { // M
   }
 });
 
+
+/**
+ * @swagger
+ * /configs:
+ *   patch:
+ *     tags: [Configuration]
+ *     summary: Update application configuration
+ *     description: Update application configuration settings (admin only)
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Config'
+ *           examples:
+ *             basicUpdate:
+ *               summary: Basic configuration update
+ *               value:
+ *                 defaultTaxRate: 20
+ *                 currency: { code: 'MAD', symbol: 'DH' }
+ *             businessInfoUpdate:
+ *               summary: Business info update
+ *               value:
+ *                 businessInfo:
+ *                   CNIE: '123456789'
+ *                   IF: '987654321'
+ *                   taxeProfessionnelle: '456789123'
+ *     responses:
+ *       200:
+ *         description: Configuration updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Config'
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       500:
+ *         $ref: '#/components/responses/ServerError'
+ */
 
 // Update the config settings
 router.patch('/', auth, adminAuth, async (req, res) => {

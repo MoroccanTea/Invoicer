@@ -269,9 +269,9 @@ const InvoiceList = () => {
                           {(invoice.totalAmount || 0).toFixed(2)} {currencyCode}
                         </span>
                         <span className={`inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          invoice.status === 'paid' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' :
-                          invoice.status === 'pending' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400' :
-                          'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+                          invoice.status === 'Paid' || 'Received' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' :
+                          invoice.status === 'Pending' || 'Draft' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400' :
+                          'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400'
                         }`}>
                           {(invoice.status || 'unknown').charAt(0).toUpperCase() + (invoice.status || 'unknown').slice(1)}
                         </span>

@@ -10,7 +10,7 @@
 
 Invoicer is a comprehensive invoice management solution designed to streamline billing processes for businesses and freelancers. With robust features for client tracking, project management, and financial reporting, Invoicer simplifies your financial workflow.
 
-![Invoicer Interface](https://via.placeholder.com/800x400.png?text=Invoice+Management+Dashboard)
+![Invoicer Interface](./dashboard.png)
 
 ## ✨ Key Features
 
@@ -55,32 +55,7 @@ Invoicer is a comprehensive invoice management solution designed to streamline b
 - **State Management**: Context API
 - **HTTP Client**: Axios
 
-## 📂 Project Structure
-
-```
-invoicer/
-├── backend/
-│   ├── Dockerfile
-│   ├── src/
-│   │   ├── models/        # Database schemas
-│   │   ├── routes/        # API endpoints
-│   │   ├── middlewares/   # Request processing
-│   │   └── config/        # Configuration management
-│   └── tests/             # Backend unit & integration tests
-│
-├── frontend/
-│   ├── Dockerfile
-│   ├── src/
-│   │   ├── components/    # Reusable UI components
-│   │   ├── context/       # Global state management
-│   │   ├── utils/         # Utility functions
-│   │   └── views/         # Application screens
-│   └── tests/             # Frontend component tests
-│
-└── docker-compose.yml     # Multi-container orchestration
-```
-
-## 🚀 Quick Start
+## ✔ Quick Start
 
 ### Prerequisites
 - Docker
@@ -110,7 +85,7 @@ docker-compose -f docker-compose.dev.yml up --build
 - **Default Admin**
   - Email: admin@invoicer.com
   - Initial password: Generated securely
-  - Location: `backend/initial_admin_password.txt`
+  - Location: `docker logs invoicer_backend`
 
 **Note**: Change the default password immediately after first login.
 
@@ -124,41 +99,57 @@ docker-compose -f docker-compose.dev.yml up --build
 
 ## 📡 API Endpoints
 
-A detailed list of API endpoints for Invoicer is available below in `/api-docs`
-
-### Authentication
-| Method | Endpoint           | Description               |
-|--------|--------------------| --------------------------|
-| POST   | `/api/auth/login`  | User authentication      |
-| POST   | `/api/auth/logout` | User logout              |
-
-### Invoices
-| Method | Endpoint             | Description               |
-|--------|----------------------| --------------------------|
-| GET    | `/api/invoices`      | List invoices            |
-| POST   | `/api/invoices`      | Create invoice           |
-| GET    | `/api/invoices/:id`  | Get invoice details      |
+A detailed list of API endpoints for Invoicer is available in `/api-docs`.
 
 ## 🔧 Configuration
 
 Customize your application through environment variables in `.env` files.
 
-**Backend Configuration**
+**Backend Configuration** (backend directory)
 ```ini
-MONGODB_URI=mongodb://mongo:27017/invoicer
-JWT_SECRET=your_secure_secret
+# JWT Configuration
+JWT_SECRET=secure_secret
+JWT_REFRESH_SECRET=secure_refresh_secret
+
+# Server Configuration
 PORT=5000
+NODE_ENV=production
+
+# MongoDB Configuration (Docker)
+MONGODB_URI=mongodb://invoicer_admin:secure_password@mongodb:27017/invoicer?authSource=admin
+MONGO_ROOT_USER=invoicer_admin
+MONGO_ROOT_PASSWORD=secure_password
+
+# Redis Configuration (Docker)
+REDIS_URL=redis://redis:6379
 ```
 
-**Frontend Configuration**
+**Project Configuration** (root directory)
 ```ini
-REACT_APP_API_BASE_URL=http://localhost:5000
-REACT_APP_CURRENCY=USD
+# MongoDB
+MONGO_INITDB_ROOT_USERNAME=invoicer_admin
+MONGO_INITDB_ROOT_PASSWORD=secure_password
+
+# JWT
+JWT_SECRET=secure_secret
+JWT_REFRESH_SECRET=secure_refresh_secret
 ```
+
+## 🚀 Upcoming Features
+
+- **Email verification**: Secure user registration
+- **Email Notifications**: Automated invoice reminders
+- **Multi-Language Support**: Internationalization (i18n)
+- **Multi factor Authentication**: 2FA for enhanced security
+- **Invoice Templates**: Customizable designs
+- **Client Portal**: Secure client access
+- **Payment Gateway Integration**: Stripe, PayPal
+- **Mobile App**: iOS, Android
+- **CI/CD Pipeline**: Automated testing & deployment
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and development process.
+We welcome contributions! Please see [Contribution rules](CONTRIBUTING.md) for details on our code of conduct and development process.
 
 ## 📄 License
 

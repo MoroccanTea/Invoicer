@@ -291,7 +291,7 @@ const InvoiceForm = () => {
               <h3 className="font-medium text-gray-700 dark:text-gray-300">Project Details</h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">Client: {selectedProject.client?.name}</p>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Category: {config?.categories?.find(c => c.code === selectedProject.category)?.name || selectedProject.category}
+              Category: {config.categories?.find(c => c.code.toLowerCase() === selectedProject.category?.toLowerCase())?.name || selectedProject.category}
               </p>
             </div>
           )}
@@ -360,8 +360,8 @@ const InvoiceForm = () => {
             ))}
           </div>
 
-          {/* Dates and Tax */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Dates, Tax and Status */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Invoice Date</label>
               <input
@@ -371,6 +371,20 @@ const InvoiceForm = () => {
                 className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-indigo-500 dark:bg-dark-background dark:text-dark-text"
                 required
               />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
+              <select
+                value={formData.status}
+                onChange={(e) => setFormData(prev => ({...prev, status: e.target.value}))}
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-indigo-500 dark:bg-dark-background dark:text-dark-text"
+              >
+                <option value="draft">Draft</option>
+                <option value="pending">Pending</option>
+                <option value="received">Received</option>
+                <option value="paid">Paid</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Due Date</label>
