@@ -1,6 +1,31 @@
 const createApiClient = () => {
-    // Always use relative path since nginx handles routing
-    const baseURL = '/api/v1';
+    // Dynamic API URL configuration for development vs production
+    const getBaseURL = () => {
+        // Check if we're in development (React dev server)
+        const isDevelopment = process.env.NODE_ENV === 'development';
+        
+        // Use environment variable if provided, otherwise use defaults
+        if (process.env.REACT_APP_API_URL) {
+            return process.env.REACT_APP_API_URL;
+        }
+        
+        // Development: Direct backend URL
+        if (isDevelopment) {
+            return 'http://localhost:5000/api/v1';
+        }
+        
+        // Production: Relative path (handled by Nginx proxy)
+        return '/api/v1';
+    };
+    
+    const baseURL = getBaseURL();
+    
+    console.log('API Client Configuration:', {
+        NODE_ENV: process.env.NODE_ENV,
+        REACT_APP_API_URL: process.env.REACT_APP_API_URL,
+        baseURL: baseURL,
+        isDevelopment: process.env.NODE_ENV === 'development'
+    });
     
     const getToken = () => localStorage.getItem('token');
     const getRefreshToken = () => localStorage.getItem('refreshToken');
@@ -18,17 +43,26 @@ const createApiClient = () => {
     };
   
     const handleResponse = async (response, config = {}) => {
-      console.log('API Response:', response);
+      console.log('API Response:', {
+        url: response.url,
+        status: response.status,
+        statusText: response.statusText
+      });
       
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('API Error Response:', errorText);
+        console.error('API Error Response:', {
+          status: response.status,
+          statusText: response.statusText,
+          url: response.url,
+          errorText: errorText
+        });
         
         try {
           const errorJson = JSON.parse(errorText);
-          throw new Error(errorJson.error || errorJson.message || 'Request failed');
-        } catch {
-          throw new Error(errorText || 'Request failed');
+          throw new Error(errorJson.error || errorJson.message || `HTTP ${response.status}: ${response.statusText}`);
+        } catch (parseError) {
+          throw new Error(errorText || `HTTP ${response.status}: ${response.statusText}`);
         }
       }
       
@@ -51,158 +85,113 @@ const createApiClient = () => {
       }
       
       try {
-        console.log('Sending refresh token request');
-          const response = await fetch(`${baseURL}/auth/refresh`, {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${refreshToken}`
-            },
-            body: JSON.stringify({ refreshToken })
-          });
+        console.log('Sending refresh token request to:', `${baseURL}/auth/refresh`);
+        const response = await fetch(`${baseURL}/auth/refresh`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${refreshToken}`
+          },
+          body: JSON.stringify({ refreshToken })
+        });
         
         console.log('Refresh token response status:', response.status);
         
         if (!response.ok) {
-          const errorText = await response.text();
-          console.error('Refresh token error:', errorText);
           throw new Error('Failed to refresh token');
         }
         
-        const { token: newAccessToken } = await response.json();
-        console.log('New access token received');
-        localStorage.setItem('token', newAccessToken);
-        return newAccessToken;
+        const data = await response.json();
+        console.log('Token refresh successful');
+        
+        // Update stored tokens
+        localStorage.setItem('token', data.token);
+        if (data.refreshToken) {
+          localStorage.setItem('refreshToken', data.refreshToken);
+        }
+        
+        return data.token;
       } catch (error) {
-        console.error('Token refresh error:', error);
-        // If refresh fails, logout user
+        console.error('Token refresh failed:', error);
         localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');
-        localStorage.removeItem('user');
         window.location.href = '/login';
         throw error;
       }
     };
   
-    const fetchWithRetry = async (endpoint, config = {}) => {
+    const makeRequest = async (endpoint, options = {}) => {
+      const url = `${baseURL}${endpoint}`;
+      const config = {
+        ...options,
+        headers: {
+          ...getHeaders(),
+          ...options.headers
+        }
+      };
+      
+      console.log('Making API request:', {
+        method: config.method || 'GET',
+        url: url,
+        headers: config.headers
+      });
+      
       try {
-        const fullURL = `${baseURL}${endpoint}`;
-        const fetchConfig = {
-          ...config,
-          headers: endpoint.includes('/auth/login') 
-            ? config.headers 
-            : {
-                ...getHeaders(config.token),
-                ...(config.headers || {})
-              },
-          cache: 'no-store',
-          credentials: 'include'
-        };
-    
-        const response = await fetch(fullURL, fetchConfig);
+        let response = await fetch(url, config);
         
-        if (response.status === 401 && !endpoint.includes('/auth/login')) {
-          const newToken = await refreshAccessToken();
-          return fetch(fullURL, {
-            ...fetchConfig,
-            headers: {
-              ...getHeaders(newToken),
-              ...(config.headers || {})
-            }
-          });
+        // If unauthorized and we have a refresh token, try to refresh
+        if (response.status === 401 && getRefreshToken()) {
+          console.log('Received 401, attempting token refresh');
+          try {
+            const newToken = await refreshAccessToken();
+            // Retry original request with new token
+            config.headers.Authorization = `Bearer ${newToken}`;
+            response = await fetch(url, config);
+          } catch (refreshError) {
+            console.error('Token refresh failed, redirecting to login');
+            throw refreshError;
+          }
         }
         
-        return response;
+        return await handleResponse(response, config);
       } catch (error) {
-        console.error('Fetch Error:', error);
+        console.error('API Request failed:', {
+          url: url,
+          method: config.method || 'GET',
+          error: error.message
+        });
+        
+        // Network error or fetch failed
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+          throw new Error('Network error: Unable to connect to server. Please check if the backend is running.');
+        }
+        
         throw error;
       }
     };
   
     return {
-      get: async (endpoint) => {
-        console.log(`Fetching endpoint: ${baseURL}${endpoint}`);
-        const response = await fetchWithRetry(endpoint, { 
-          method: 'GET',
-          credentials: 'include'
-        });
-        return handleResponse(response);
-      },
-  
-      post: async (endpoint, data) => {
-        const response = await fetchWithRetry(endpoint, { 
-          method: 'POST',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(data)
-        });
-        return handleResponse(response);
-      },
-  
-      put: async (endpoint, data) => {
-        const response = await fetchWithRetry(endpoint, { 
-          method: 'PUT',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(data)
-        });
-        return handleResponse(response);
-      },
-
-      patch: async (endpoint, data) => {
-        const response = await fetchWithRetry(endpoint, { 
-          method: 'PATCH',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(data)
-        });
-        return handleResponse(response);
-      },
-  
-      delete: async (endpoint) => {
-        const response = await fetchWithRetry(endpoint, { 
-          method: 'DELETE',
-          credentials: 'include'
-        });
-        return handleResponse(response);
-      },
-
-      downloadPdf: async (endpoint) => {
-        try {
-          const response = await fetchWithRetry(endpoint, { 
-            method: 'GET',
-            headers: {
-              'Accept': 'application/pdf',
-              ...getHeaders()
-            },
-            credentials: 'include'
-          });
-          
-          if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Failed to download PDF: ${errorText}`);
-          }
-          
-          const blob = await response.blob();
-          if (blob.size === 0) {
-            throw new Error('Empty PDF generated');
-          }
-          
-          return blob;
-        } catch (error) {
-          console.error('PDF Download Error:', error);
-          throw error;
-        }
-      }
+      get: (endpoint) => makeRequest(endpoint),
+      post: (endpoint, data) => makeRequest(endpoint, {
+        method: 'POST',
+        body: JSON.stringify(data)
+      }),
+      put: (endpoint, data) => makeRequest(endpoint, {
+        method: 'PUT',
+        body: JSON.stringify(data)
+      }),
+      patch: (endpoint, data) => makeRequest(endpoint, {
+        method: 'PATCH',
+        body: JSON.stringify(data)
+      }),
+      delete: (endpoint) => makeRequest(endpoint, {
+        method: 'DELETE'
+      }),
+      // Expose baseURL for debugging
+      getBaseURL: () => baseURL
     };
   };
   
-  export const api = createApiClient();
+  const api = createApiClient();
   export default api;

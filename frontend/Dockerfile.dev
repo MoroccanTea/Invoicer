@@ -1,0 +1,43 @@
+# =============================================================================
+# INVOICER FRONTEND DEVELOPMENT DOCKERFILE
+# =============================================================================
+# Development build with hot reloading and dev tools
+
+FROM node:18-alpine as base
+
+# Install development tools
+RUN apk add --no-cache \
+    curl \
+    git \
+    bash
+
+WORKDIR /app
+
+# Install dependencies
+COPY package*.json ./
+RUN npm ci --include=dev
+
+# Development stage
+FROM base as development
+
+# Copy source code
+COPY . .
+
+# Create user and set permissions
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S reactjs -u 1001 && \
+    chown -R reactjs:nodejs /app
+
+# Switch to non-root user
+USER reactjs
+
+# Expose port
+EXPOSE 3000
+
+# Environment variables for development
+ENV FAST_REFRESH=true
+ENV CHOKIDAR_USEPOLLING=true
+ENV WATCHPACK_POLLING=true
+
+# Start development server
+CMD ["npm", "start"]

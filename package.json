@@ -1,0 +1,70 @@
+{
+  "name": "invoicer",
+  "version": "1.0.0",
+  "description": "Professional Billing Management System",
+  "author": "Hamza Essad <hamza@essad.ma>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MoroccanTea/invoicer.git"
+  },
+  "keywords": ["invoice", "billing", "freelance", "management", "react", "nodejs"],
+  "scripts": {
+    "install": "npm run install:backend && npm run install:frontend",
+    "install:backend": "cd backend && npm install",
+    "install:frontend": "cd frontend && npm install",
+    
+    "dev": "docker-compose -f docker-compose.dev.yml up --build",
+    "dev:detached": "docker-compose -f docker-compose.dev.yml up --build -d",
+    "dev:down": "docker-compose -f docker-compose.dev.yml down",
+    "dev:local": "concurrently \"cd backend && npm run dev\" \"cd frontend && npm run dev:local\"",
+    
+    "start": "docker-compose up --build -d",
+    "start:attached": "docker-compose up --build",
+    "stop": "docker-compose down",
+    
+    "logs": "docker-compose logs -f",
+    "logs:backend": "docker-compose logs -f backend",
+    "logs:frontend": "docker-compose logs -f frontend",
+    "logs:mongodb": "docker-compose logs -f mongodb",
+    "logs:redis": "docker-compose logs -f redis",
+    
+    "clean": "docker-compose down -v --remove-orphans && docker system prune -f",
+    "clean:dev": "docker-compose -f docker-compose.dev.yml down -v --remove-orphans",
+    "reset": "npm run clean && npm run start",
+    "reset:dev": "npm run clean:dev && npm run dev",
+    
+    "test": "npm run test:backend && npm run test:frontend",
+    "test:backend": "cd backend && npm test",
+    "test:frontend": "cd frontend && npm test -- --coverage --ci",
+    
+    "lint": "npm run lint:backend && npm run lint:frontend",
+    "lint:backend": "cd backend && npm run lint",
+    "lint:frontend": "cd frontend && npm run lint",
+    
+    "build": "npm run build:backend && npm run build:frontend",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    
+    "health": "curl -f http://localhost:5000/status || exit 1",
+    "setup": "npm run setup:env && npm install",
+    "setup:env": "cp .env.example .env && cp backend/.env.example backend/.env && cp frontend/.env.example frontend/.env && echo 'Environment files created. Please edit them with your settings.'",
+    
+    "docker:build": "docker-compose build --no-cache",
+    "docker:build:dev": "docker-compose -f docker-compose.dev.yml build --no-cache",
+    "docker:pull": "docker-compose pull",
+    "docker:ps": "docker-compose ps",
+    "docker:restart": "docker-compose restart",
+    "docker:restart:backend": "docker-compose restart backend",
+    "docker:restart:frontend": "docker-compose restart frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0",
+    "cross-env": "^7.0.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "private": true
+}

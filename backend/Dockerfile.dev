@@ -1,0 +1,43 @@
+# =============================================================================
+# INVOICER BACKEND DEVELOPMENT DOCKERFILE
+# =============================================================================
+# Multi-stage build for development with hot reloading and debugging
+
+FROM node:18-alpine as base
+
+# Install development tools
+RUN apk add --no-cache \
+    curl \
+    wget \
+    git \
+    bash
+
+WORKDIR /app
+
+# Install dependencies
+COPY package*.json ./
+RUN npm ci --include=dev
+
+# Development stage
+FROM base as development
+
+# Copy source code
+COPY . .
+
+# Create necessary directories and set permissions
+RUN mkdir -p /app/src && \
+    chown -R node:node /app && \
+    chmod 755 /app
+
+# Switch to non-root user
+USER node
+
+# Expose ports
+EXPOSE 5000 9229
+
+# Add healthcheck
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
+    CMD curl -f http://localhost:5000/status || exit 1
+
+# Development command with nodemon and debugging
+CMD ["npm", "run", "dev"]
