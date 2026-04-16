@@ -1,9 +1,10 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import Link from 'next/link'
 import { format } from 'date-fns'
-import { FiArrowLeft, FiDownload, FiPrinter } from 'react-icons/fi'
+import { FiArrowLeft, FiDownload, FiPrinter, FiBell } from 'react-icons/fi'
+import toast from 'react-hot-toast'
 
 type InvoiceStatus = 'pending' | 'cancelled' | 'paid_pending_taxes' | 'all_paid'
 type ActivityCategory = 'teaching' | 'software_development' | 'consulting' | 'pentesting'
@@ -101,6 +102,7 @@ export default function InvoiceDetailClient({
   canExport,
 }: Props) {
   const printRef = useRef<HTMLDivElement>(null)
+  const [isSendingReminder, setIsSendingReminder] = useState(false)
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -111,6 +113,20 @@ export default function InvoiceDetailClient({
 
   const handlePrint = () => {
     window.print()
+  }
+
+  const handleSendReminder = async () => {
+    setIsSendingReminder(true)
+    try {
+      const res = await fetch(`/api/invoices/${invoice._id}/remind`, { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      toast.success('Payment reminder sent')
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to send reminder')
+    } finally {
+      setIsSendingReminder(false)
+    }
   }
 
   return (
@@ -134,19 +150,24 @@ export default function InvoiceDetailClient({
           </div>
         </div>
 
-        <div className="flex gap-2">
-          <button
-            onClick={handlePrint}
-            className="btn-secondary flex items-center gap-2"
-          >
+        <div className="flex gap-2 flex-wrap">
+          <button onClick={handlePrint} className="btn-secondary flex items-center gap-2">
             <FiPrinter className="w-4 h-4" />
             Print
           </button>
-          {canExport && (
-            <Link
-              href={`/api/invoices/${invoice._id}/pdf`}
-              className="btn-primary flex items-center gap-2"
+          {invoice.status !== 'all_paid' && invoice.status !== 'cancelled' && (
+            <button
+              onClick={handleSendReminder}
+              disabled={isSendingReminder}
+              className="btn-secondary flex items-center gap-2"
+              title="Send payment reminder email to client"
             >
+              <FiBell className="w-4 h-4" />
+              {isSendingReminder ? 'Sending...' : 'Send Reminder'}
+            </button>
+          )}
+          {canExport && (
+            <Link href={`/api/invoices/${invoice._id}/pdf`} className="btn-primary flex items-center gap-2">
               <FiDownload className="w-4 h-4" />
               Download PDF
             </Link>

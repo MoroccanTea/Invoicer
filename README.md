@@ -281,15 +281,15 @@ MIT — see [LICENSE](LICENSE) for details.
 - [x] Dark mode (system/light/dark)
 - [x] Advanced reporting dashboard with charts
 - [x] Dockerized deployment (dev + production)
+- [x] Email notifications and payment reminders (SMTP, per-invoice reminder button, bulk overdue processor, quarterly tax reminders)
+- [x] Two-factor authentication (2FA — TOTP via speakeasy, QR code setup, backup codes, login step)
+- [x] Swagger API documentation (`/api-docs`)
 
 ### Planned
-- [ ] Email notifications and payment reminders
-- [ ] Two-factor authentication (2FA)
 - [ ] Custom invoice template upload (XLSX, DOCX)
 - [ ] Payment gateway integration
 - [ ] Client portal
 - [ ] Rate limiting
-- [ ] Swagger API documentation
 - [ ] Mobile application
 
 ---

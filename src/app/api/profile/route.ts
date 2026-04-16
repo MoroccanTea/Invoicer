@@ -16,7 +16,7 @@ export async function GET() {
     await connectDB()
 
     const user = await User.findById(session.user.id).select(
-      'firstName lastName email cnie phone language notificationsEnabled taxReminderEnabled'
+      'firstName lastName email cnie phone language notificationsEnabled taxReminderEnabled twoFactorEnabled'
     )
 
     if (!user) {

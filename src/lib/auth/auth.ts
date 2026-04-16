@@ -4,6 +4,7 @@ import connectDB from '@/lib/db/mongoose'
 import User, { IUser } from '@/lib/models/User'
 import { logActivity } from '@/lib/models/ActivityLog'
 import { initializeAdmin } from './initAdmin'
+import speakeasy from 'speakeasy'
 
 declare module 'next-auth' {
   interface Session {
@@ -51,6 +52,7 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
+        totpCode: { label: 'Authenticator Code', type: 'text' },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
@@ -65,7 +67,7 @@ export const authOptions: NextAuthOptions = {
         const user = await User.findOne({
           email: credentials.email.toLowerCase(),
           isActive: true,
-        }).select('+password')
+        }).select('+password +twoFactorSecret')
 
         if (!user) {
           throw new Error('Invalid email or password')
@@ -75,6 +77,29 @@ export const authOptions: NextAuthOptions = {
 
         if (!isPasswordValid) {
           throw new Error('Invalid email or password')
+        }
+
+        // 2FA check — if enabled, require a valid TOTP code
+        if (user.twoFactorEnabled) {
+          if (!credentials.totpCode) {
+            // Signal to the login page that 2FA is required
+            throw new Error('TWO_FACTOR_REQUIRED')
+          }
+
+          // '__BACKUP_VERIFIED__' means the backup code was already consumed
+          // by the /api/auth/2fa/backup endpoint in this same request cycle
+          if (credentials.totpCode !== '__BACKUP_VERIFIED__') {
+            const verified = speakeasy.totp.verify({
+              secret: user.twoFactorSecret!,
+              encoding: 'base32',
+              token: credentials.totpCode.replace(/\s/g, ''),
+              window: 1,
+            })
+
+            if (!verified) {
+              throw new Error('Invalid authenticator code')
+            }
+          }
         }
 
         // Update last login

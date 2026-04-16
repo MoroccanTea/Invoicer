@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
@@ -12,6 +12,9 @@ import {
   FiSave,
   FiBell,
   FiGlobe,
+  FiShield,
+  FiCheckCircle,
+  FiAlertTriangle,
 } from 'react-icons/fi'
 
 interface UserProfile {
@@ -30,6 +33,9 @@ export default function ProfilePage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [showPasswordModal, setShowPasswordModal] = useState(false)
+  const [show2FASetup, setShow2FASetup] = useState(false)
+  const [show2FADisable, setShow2FADisable] = useState(false)
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false)
   const [profile, setProfile] = useState<UserProfile>({
     firstName: '',
     lastName: '',
@@ -60,6 +66,7 @@ export default function ProfilePage() {
           notificationsEnabled: data.notificationsEnabled ?? false,
           taxReminderEnabled: data.taxReminderEnabled ?? false,
         })
+        setTwoFactorEnabled(data.twoFactorEnabled ?? false)
       }
     } catch (error) {
       toast.error('Failed to load profile')
@@ -281,6 +288,42 @@ export default function ProfilePage() {
             </div>
           </div>
 
+          {/* Two-Factor Authentication */}
+          <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <FiShield className="w-5 h-5" />
+              Two-Factor Authentication
+            </h2>
+
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                {twoFactorEnabled ? (
+                  <div className="flex items-center gap-2 text-green-600 dark:text-green-400 mb-1">
+                    <FiCheckCircle className="w-4 h-4" />
+                    <span className="font-medium text-sm">2FA is enabled</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-yellow-600 dark:text-yellow-400 mb-1">
+                    <FiAlertTriangle className="w-4 h-4" />
+                    <span className="font-medium text-sm">2FA is not enabled</span>
+                  </div>
+                )}
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {twoFactorEnabled
+                    ? 'Your account is protected with an authenticator app.'
+                    : 'Add an extra layer of security with a TOTP authenticator app.'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => twoFactorEnabled ? setShow2FADisable(true) : setShow2FASetup(true)}
+                className={twoFactorEnabled ? 'btn-danger whitespace-nowrap' : 'btn-primary whitespace-nowrap'}
+              >
+                {twoFactorEnabled ? 'Disable 2FA' : 'Enable 2FA'}
+              </button>
+            </div>
+          </div>
+
           {/* Save Button */}
           <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
             <button
@@ -322,6 +365,22 @@ export default function ProfilePage() {
       {/* Password Change Modal */}
       {showPasswordModal && (
         <PasswordModal onClose={() => setShowPasswordModal(false)} />
+      )}
+
+      {/* 2FA Setup Modal */}
+      {show2FASetup && (
+        <TwoFASetupModal
+          onClose={() => setShow2FASetup(false)}
+          onEnabled={() => { setTwoFactorEnabled(true); setShow2FASetup(false) }}
+        />
+      )}
+
+      {/* 2FA Disable Modal */}
+      {show2FADisable && (
+        <TwoFADisableModal
+          onClose={() => setShow2FADisable(false)}
+          onDisabled={() => { setTwoFactorEnabled(false); setShow2FADisable(false) }}
+        />
       )}
     </div>
   )
@@ -413,19 +472,216 @@ function PasswordModal({ onClose }: { onClose: () => void }) {
           </div>
 
           <div className="flex gap-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="btn-secondary flex-1"
-            >
+            <button type="button" onClick={onClose} className="btn-secondary flex-1">
               Cancel
             </button>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="btn-primary flex-1"
-            >
+            <button type="submit" disabled={isLoading} className="btn-primary flex-1">
               {isLoading ? 'Changing...' : 'Change Password'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+function TwoFASetupModal({
+  onClose,
+  onEnabled,
+}: {
+  onClose: () => void
+  onEnabled: () => void
+}) {
+  const [step, setStep] = useState<'qr' | 'verify' | 'backup'>('qr')
+  const [qrCode, setQrCode] = useState('')
+  const [secret, setSecret] = useState('')
+  const [token, setToken] = useState('')
+  const [backupCodes, setBackupCodes] = useState<string[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/auth/2fa/setup')
+      .then(r => r.json())
+      .then(data => {
+        setQrCode(data.qrCode)
+        setSecret(data.secret)
+      })
+      .catch(() => toast.error('Failed to initialize 2FA setup'))
+  }, [])
+
+  const handleVerify = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    try {
+      const res = await fetch('/api/auth/2fa/enable', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      setBackupCodes(data.backupCodes)
+      setStep('backup')
+    } catch (err: any) {
+      toast.error(err.message || 'Verification failed')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const copySecret = () => {
+    navigator.clipboard.writeText(secret)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 w-full max-w-md">
+        {step === 'qr' && (
+          <>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+              Set Up Two-Factor Authentication
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              Scan the QR code with your authenticator app (e.g. Google Authenticator, Authy).
+            </p>
+            <div className="flex justify-center mb-4 bg-white p-3 rounded-lg">
+              {qrCode
+                ? <img src={qrCode} alt="2FA QR Code" className="w-44 h-44" />
+                : <div className="w-44 h-44 animate-pulse bg-gray-200 rounded" />}
+            </div>
+            <p className="text-xs text-center text-gray-500 mb-2">Or enter this code manually:</p>
+            <div className="flex items-center gap-2 mb-4">
+              <code className="flex-1 bg-gray-100 dark:bg-gray-700 rounded px-3 py-2 text-xs font-mono break-all">
+                {secret || '...'}
+              </code>
+              <button type="button" onClick={copySecret} className="btn-secondary text-xs px-3">
+                {copied ? 'Copied!' : 'Copy'}
+              </button>
+            </div>
+            <div className="flex gap-3">
+              <button type="button" onClick={onClose} className="btn-secondary flex-1">Cancel</button>
+              <button type="button" onClick={() => setStep('verify')} className="btn-primary flex-1" disabled={!qrCode}>
+                Next
+              </button>
+            </div>
+          </>
+        )}
+
+        {step === 'verify' && (
+          <>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Verify Your Code</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              Enter the 6-digit code shown in your authenticator app to confirm setup.
+            </p>
+            <form onSubmit={handleVerify} className="space-y-4">
+              <input
+                type="text"
+                value={token}
+                onChange={e => setToken(e.target.value)}
+                className="input-field text-center text-xl tracking-widest font-mono"
+                placeholder="000 000"
+                maxLength={7}
+                autoComplete="one-time-code"
+                autoFocus
+                required
+              />
+              <div className="flex gap-3">
+                <button type="button" onClick={() => setStep('qr')} className="btn-secondary flex-1">Back</button>
+                <button type="submit" disabled={isLoading} className="btn-primary flex-1">
+                  {isLoading ? 'Verifying...' : 'Enable 2FA'}
+                </button>
+              </div>
+            </form>
+          </>
+        )}
+
+        {step === 'backup' && (
+          <>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Save Your Backup Codes</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+              Store these codes somewhere safe. Each can be used once if you lose access to your authenticator app.
+            </p>
+            <p className="text-xs text-red-500 mb-4 font-medium">These will not be shown again.</p>
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              {backupCodes.map(code => (
+                <code key={code} className="bg-gray-100 dark:bg-gray-700 rounded px-3 py-2 text-sm font-mono text-center tracking-widest">
+                  {code}
+                </code>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => navigator.clipboard.writeText(backupCodes.join('\n'))}
+              className="btn-secondary w-full mb-3"
+            >
+              Copy All Codes
+            </button>
+            <button type="button" onClick={onEnabled} className="btn-primary w-full">
+              Done — I've saved my codes
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function TwoFADisableModal({
+  onClose,
+  onDisabled,
+}: {
+  onClose: () => void
+  onDisabled: () => void
+}) {
+  const [password, setPassword] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    try {
+      const res = await fetch('/api/auth/2fa/disable', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      toast.success('2FA has been disabled')
+      onDisabled()
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to disable 2FA')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 w-full max-w-sm">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Disable 2FA</h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          Enter your password to confirm disabling two-factor authentication.
+        </p>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="label">Current Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              className="input-field"
+              required
+              autoFocus
+            />
+          </div>
+          <div className="flex gap-3">
+            <button type="button" onClick={onClose} className="btn-secondary flex-1">Cancel</button>
+            <button type="submit" disabled={isLoading} className="btn-danger flex-1">
+              {isLoading ? 'Disabling...' : 'Disable 2FA'}
             </button>
           </div>
         </form>

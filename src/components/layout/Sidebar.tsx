@@ -13,6 +13,7 @@ import {
   FiLogOut,
   FiX,
   FiUserPlus,
+  FiCode,
 } from 'react-icons/fi'
 
 interface SidebarProps {
@@ -28,6 +29,7 @@ const navigation = [
   { name: 'Users', href: '/dashboard/users', icon: FiUserPlus, adminOnly: true },
   { name: 'Configuration', href: '/dashboard/configuration', icon: FiSettings },
   { name: 'Profile', href: '/dashboard/profile', icon: FiUser },
+  { name: 'API Docs', href: '/api-docs', icon: FiCode, adminOnly: true },
 ]
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
