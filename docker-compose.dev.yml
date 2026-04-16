@@ -1,102 +1,66 @@
-# =============================================================================
-# INVOICER DEVELOPMENT DOCKER COMPOSE CONFIGURATION
-# =============================================================================
-# This configuration is optimized for development with hot reloading,
-# exposed ports for debugging, and volume mounts for live code changes.
-
 services:
-  # MongoDB Database
-  mongodb:
-    image: mongo:7-jammy
-    container_name: invoicer_mongodb_dev
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:-invoicer_admin}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:-change_this_password}
+  invoicer:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: invoicer_dev
+    restart: unless-stopped
     ports:
-      - "27017:27017"  # Exposed for development tools
+      - "3000:3000"
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - invoicer-dev-network
+
+  mongodb:
+    image: mongo:7
+    container_name: invoicer_mongodb_dev
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    env_file:
+      - .env
     volumes:
       - mongodb_dev_data:/data/db
-    restart: unless-stopped
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/admin --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
     networks:
-      - invoicer_dev_network
+      - invoicer-dev-network
 
-  # Redis Cache
   redis:
     image: redis:7-alpine
     container_name: invoicer_redis_dev
-    command: redis-server --appendonly yes --appendfsync everysec
+    restart: unless-stopped
     ports:
-      - "6379:6379"  # Exposed for development tools
+      - "6379:6379"
+    command: redis-server --appendonly yes
     volumes:
       - redis_dev_data:/data
-    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
-      - invoicer_dev_network
-
-  # Backend API (Development)
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile.dev
-      target: development
-    container_name: invoicer_backend_dev
-    env_file:
-      - backend/.env
-    environment:
-      - NODE_ENV=development
-      - MONGODB_URI=mongodb://${MONGO_INITDB_ROOT_USERNAME:-invoicer_admin}:${MONGO_INITDB_ROOT_PASSWORD:-change_this_password}@mongodb:27017/invoicer?authSource=admin
-      - REDIS_URL=redis://redis:6379
-    ports:
-      - "5000:5000"
-      - "9229:9229"  # Node.js debugging port
-    volumes:
-      - ./backend/src:/app/src:ro
-      - ./backend/package.json:/app/package.json:ro
-      - backend_dev_node_modules:/app/node_modules
-    depends_on:
-      - mongodb
-      - redis
-    restart: unless-stopped
-    networks:
-      - invoicer_dev_network
-    command: npm run dev
-
-  # Frontend Application (Development)
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile.dev
-      target: development
-    container_name: invoicer_frontend_dev
-    environment:
-      - REACT_APP_API_URL=http://localhost:5000/api/v1
-      - REACT_APP_DEV_TOOLS=true
-      - CHOKIDAR_USEPOLLING=true  # Enable polling for file changes
-      - FAST_REFRESH=true
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./frontend/src:/app/src:ro
-      - ./frontend/public:/app/public:ro
-      - ./frontend/package.json:/app/package.json:ro
-      - frontend_dev_node_modules:/app/node_modules
-    depends_on:
-      - backend
-    restart: unless-stopped
-    networks:
-      - invoicer_dev_network
-    command: npm start
+      - invoicer-dev-network
 
 volumes:
   mongodb_dev_data:
-    driver: local
   redis_dev_data:
-    driver: local
-  backend_dev_node_modules:
-    driver: local
-  frontend_dev_node_modules:
-    driver: local
 
 networks:
-  invoicer_dev_network:
+  invoicer-dev-network:
     driver: bridge

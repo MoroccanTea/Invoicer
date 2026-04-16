@@ -1,0 +1,137 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "import": "Import",
+    "loading": "Loading...",
+    "confirm": "Confirm",
+    "success": "Success",
+    "error": "Error",
+    "warning": "Warning",
+    "info": "Info"
+  },
+  "auth": {
+    "login": "Sign in",
+    "logout": "Logout",
+    "email": "Email address",
+    "password": "Password",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm New Password",
+    "changePassword": "Change Password",
+    "mustChangePassword": "You must change your password before continuing",
+    "emailRequired": "Email is required",
+    "passwordRequired": "Password is required",
+    "signingIn": "Signing in...",
+    "welcomeBack": "Welcome back!",
+    "invalidCredentials": "Invalid email or password",
+    "2fa": {
+      "title": "Two-Factor Authentication",
+      "enterCode": "Enter the 6-digit code from your authenticator app",
+      "code": "6-digit code",
+      "verify": "Verify",
+      "verifying": "Verifying...",
+      "invalidCode": "Invalid code",
+      "setup": "Set up 2FA",
+      "disable": "Disable 2FA",
+      "enabled": "2FA Enabled",
+      "disabled": "2FA Disabled",
+      "scanQR": "Scan this QR code with your authenticator app",
+      "manualEntry": "Or enter this key manually",
+      "backupCodes": "Backup Codes",
+      "saveBackupCodes": "Save these backup codes in a safe place"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome to Invoicer",
+    "overview": "Overview",
+    "statistics": "Statistics",
+    "recentActivity": "Recent Activity"
+  },
+  "clients": {
+    "title": "Clients",
+    "addClient": "Add Client",
+    "editClient": "Edit Client",
+    "deleteClient": "Delete Client",
+    "clientName": "Client Name",
+    "clientDetails": "Client Details",
+    "noClients": "No clients found"
+  },
+  "projects": {
+    "title": "Projects",
+    "addProject": "Add Project",
+    "editProject": "Edit Project",
+    "deleteProject": "Delete Project",
+    "projectName": "Project Name",
+    "projectDetails": "Project Details",
+    "noProjects": "No projects found"
+  },
+  "invoices": {
+    "title": "Invoices",
+    "addInvoice": "Add Invoice",
+    "editInvoice": "Edit Invoice",
+    "deleteInvoice": "Delete Invoice",
+    "invoiceNumber": "Invoice Number",
+    "invoiceDetails": "Invoice Details",
+    "noInvoices": "No invoices found"
+  },
+  "users": {
+    "title": "Users",
+    "addUser": "Add User",
+    "editUser": "Edit User",
+    "deleteUser": "Delete User",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "role": "Role",
+    "admin": "Administrator",
+    "manager": "Manager",
+    "user": "User"
+  },
+  "settings": {
+    "title": "Settings",
+    "configuration": "Configuration",
+    "profile": "Profile",
+    "security": "Security",
+    "language": "Language",
+    "theme": "Theme",
+    "lightMode": "Light Mode",
+    "darkMode": "Dark Mode",
+    "systemType": {
+      "title": "System Type",
+      "morocco": "Morocco",
+      "generic": "Generic / International",
+      "moroccoDesc": "Includes ICE, IF, TP, and TVA fields. Currency set to MAD (Dirham).",
+      "genericDesc": "Flexible configuration for any country. Choose your currency and tax settings."
+    }
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "clients": "Clients",
+    "projects": "Projects",
+    "invoices": "Invoices",
+    "users": "Users",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
+  "passwordRequirements": {
+    "title": "Password Requirements",
+    "minLength": "At least 8 characters",
+    "uppercase": "Contains uppercase letter",
+    "lowercase": "Contains lowercase letter",
+    "number": "Contains number",
+    "match": "Passwords match"
+  },
+  "validation": {
+    "required": "This field is required",
+    "invalidEmail": "Invalid email address",
+    "minLength": "Minimum length is {min} characters",
+    "maxLength": "Maximum length is {max} characters"
+  }
+}

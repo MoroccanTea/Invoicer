@@ -1,0 +1,137 @@
+{
+  "common": {
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "add": "إضافة",
+    "search": "بحث",
+    "filter": "تصفية",
+    "export": "تصدير",
+    "import": "استيراد",
+    "loading": "جاري التحميل...",
+    "confirm": "تأكيد",
+    "success": "نجاح",
+    "error": "خطأ",
+    "warning": "تحذير",
+    "info": "معلومات"
+  },
+  "auth": {
+    "login": "تسجيل الدخول",
+    "logout": "تسجيل الخروج",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "currentPassword": "كلمة المرور الحالية",
+    "newPassword": "كلمة المرور الجديدة",
+    "confirmPassword": "تأكيد كلمة المرور الجديدة",
+    "changePassword": "تغيير كلمة المرور",
+    "mustChangePassword": "يجب عليك تغيير كلمة المرور الخاصة بك قبل المتابعة",
+    "emailRequired": "البريد الإلكتروني مطلوب",
+    "passwordRequired": "كلمة المرور مطلوبة",
+    "signingIn": "جاري تسجيل الدخول...",
+    "welcomeBack": "مرحبا بعودتك!",
+    "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة",
+    "2fa": {
+      "title": "المصادقة الثنائية",
+      "enterCode": "أدخل الرمز المكون من 6 أرقام من تطبيق المصادقة الخاص بك",
+      "code": "رمز مكون من 6 أرقام",
+      "verify": "تحقق",
+      "verifying": "جاري التحقق...",
+      "invalidCode": "رمز غير صالح",
+      "setup": "إعداد المصادقة الثنائية",
+      "disable": "تعطيل المصادقة الثنائية",
+      "enabled": "المصادقة الثنائية مفعلة",
+      "disabled": "المصادقة الثنائية معطلة",
+      "scanQR": "امسح رمز الاستجابة السريعة هذا باستخدام تطبيق المصادقة",
+      "manualEntry": "أو أدخل هذا المفتاح يدويًا",
+      "backupCodes": "رموز الاحتياطية",
+      "saveBackupCodes": "احفظ رموز الاحتياطية هذه في مكان آمن"
+    }
+  },
+  "dashboard": {
+    "title": "لوحة التحكم",
+    "welcome": "مرحبا بك في Invoicer",
+    "overview": "نظرة عامة",
+    "statistics": "الإحصائيات",
+    "recentActivity": "النشاط الأخير"
+  },
+  "clients": {
+    "title": "العملاء",
+    "addClient": "إضافة عميل",
+    "editClient": "تعديل العميل",
+    "deleteClient": "حذف العميل",
+    "clientName": "اسم العميل",
+    "clientDetails": "تفاصيل العميل",
+    "noClients": "لا يوجد عملاء"
+  },
+  "projects": {
+    "title": "المشاريع",
+    "addProject": "إضافة مشروع",
+    "editProject": "تعديل المشروع",
+    "deleteProject": "حذف المشروع",
+    "projectName": "اسم المشروع",
+    "projectDetails": "تفاصيل المشروع",
+    "noProjects": "لا توجد مشاريع"
+  },
+  "invoices": {
+    "title": "الفواتير",
+    "addInvoice": "إضافة فاتورة",
+    "editInvoice": "تعديل الفاتورة",
+    "deleteInvoice": "حذف الفاتورة",
+    "invoiceNumber": "رقم الفاتورة",
+    "invoiceDetails": "تفاصيل الفاتورة",
+    "noInvoices": "لا توجد فواتير"
+  },
+  "users": {
+    "title": "المستخدمون",
+    "addUser": "إضافة مستخدم",
+    "editUser": "تعديل المستخدم",
+    "deleteUser": "حذف المستخدم",
+    "firstName": "الاسم الأول",
+    "lastName": "اسم العائلة",
+    "role": "الدور",
+    "admin": "مسؤول",
+    "manager": "مدير",
+    "user": "مستخدم"
+  },
+  "settings": {
+    "title": "الإعدادات",
+    "configuration": "التكوين",
+    "profile": "الملف الشخصي",
+    "security": "الأمان",
+    "language": "اللغة",
+    "theme": "المظهر",
+    "lightMode": "الوضع الفاتح",
+    "darkMode": "الوضع الداكن",
+    "systemType": {
+      "title": "نوع النظام",
+      "morocco": "المغرب",
+      "generic": "عام / دولي",
+      "moroccoDesc": "يتضمن حقول ICE و IF و TP و TVA. العملة محددة بالدرهم المغربي (MAD).",
+      "genericDesc": "تكوين مرن لأي بلد. اختر العملة وإعدادات الضرائب الخاصة بك."
+    }
+  },
+  "navigation": {
+    "dashboard": "لوحة التحكم",
+    "clients": "العملاء",
+    "projects": "المشاريع",
+    "invoices": "الفواتير",
+    "users": "المستخدمون",
+    "settings": "الإعدادات",
+    "logout": "تسجيل الخروج"
+  },
+  "passwordRequirements": {
+    "title": "متطلبات كلمة المرور",
+    "minLength": "8 أحرف على الأقل",
+    "uppercase": "يحتوي على حرف كبير",
+    "lowercase": "يحتوي على حرف صغير",
+    "number": "يحتوي على رقم",
+    "match": "كلمات المرور متطابقة"
+  },
+  "validation": {
+    "required": "هذا الحقل مطلوب",
+    "invalidEmail": "عنوان البريد الإلكتروني غير صالح",
+    "minLength": "الحد الأدنى للطول هو {min} حرفا",
+    "maxLength": "الحد الأقصى للطول هو {max} حرفا"
+  }
+}

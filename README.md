@@ -4,12 +4,12 @@
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/MoroccanTea/invoicer)
 ![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)
 ![Open Source Love](https://badges.frapsoft.com/os/v2/open-source.svg?v=103)
-
+![GitHub issues](https://img.shields.io/github/issues/MoroccanTea/invoicer)
 ## 📝 Overview
 
 ![Invoicer Dashbaord](./dashboard.png)
 
-Invoicer is a comprehensive invoice management solution designed to streamline billing processes for businesses and freelancers. With robust features for client tracking, project management, and financial reporting, Invoicer simplifies your financial workflow.
+Invoicer is a comprehensive invoice management solution designed to streamline billing processes for businesses and freelancers mainly in Morocco. With robust features for client tracking, project management, and financial reporting, Invoicer simplifies your financial workflow.
 
 ## ✨ Key Features
 
@@ -21,15 +21,14 @@ Invoicer is a comprehensive invoice management solution designed to streamline b
 
 ## 🛠 Technology Stack
 
-**Backend**: Node.js 18, Express.js, MongoDB, JWT Authentication, Redis
-**Frontend**: React 18, React Router 6, Tailwind CSS, Context API
+**Application**: NextJs 16.1.4, MongoDB, Redis
 **Deployment**: Docker, Docker Compose, Nginx
 
 ## 📋 Prerequisites
 
 Before you begin, ensure you have the following installed:
-- [Docker](https://docs.docker.com/get-docker/) (version 20.10+)
-- [Docker Compose](https://docs.docker.com/compose/install/) (version 2.0+)
+- [Docker](https://docs.docker.com/get-docker/) (version 28+)
+- [Docker Compose](https://docs.docker.com/compose/install/) (version 2.40+)
 - [Git](https://git-scm.com/downloads)
 
 ## 🚀 Quick Start Guide
@@ -50,18 +49,6 @@ Create the main environment file in the root directory:
 cp .env.example .env
 ```
 
-Create backend environment file:
-```bash
-# Copy and edit backend environment
-cp backend/.env.example backend/.env
-```
-
-Create frontend environment file (if needed):
-```bash
-# Copy frontend environment (optional)
-cp frontend/.env.example frontend/.env
-```
-
 ### 3. Configure Your Environment
 
 Edit the `.env` file in the root directory with your settings:
@@ -77,10 +64,10 @@ nano .env
 
 ### 4. Start the Application
 
-**For Development:**
+**For Development:** [From the root directory]
 ```bash
 # Start with development configuration
-docker-compose -f docker-compose.dev.yml up --build
+docker compose -f docker-compose.dev.yml up --build
 
 # Or use the convenience script
 npm run dev
@@ -89,7 +76,7 @@ npm run dev
 **For Production:**
 ```bash
 # Start with production configuration
-docker-compose up --build -d
+docker compose up --build -d
 
 # Or use the convenience script
 npm start
@@ -97,23 +84,22 @@ npm start
 
 ### 5. Access the Application
 
-- **Frontend**: http://localhost (port 80) or http://localhost:3000 (development)
-- **Backend API**: http://localhost:5000
-- **API Documentation**: http://localhost:5000/api-docs
+- **Application**: http://localhost (port 80) or http://localhost:3000 (development)
+- **API Documentation**: http://localhost/api-docs
 
 ### 6. First-Time Login
 
 When you first start the application, an admin user will be automatically created:
 
 - **Email**: `admin@invoicer.com`
-- **Password**: Check the backend logs for the generated password
+- **Password**: Check the backend logs for the generated password.
 
 ```bash
 # View the generated admin password
-docker logs invoicer_backend
+docker logs invoicer
 ```
 
-**🔐 CRITICAL**: Change the admin password immediately after first login!
+**🔐 CRITICAL**: Change the admin password immediately after first login - you will be prompted to do so.
 
 ## ⚙️ Environment Configuration
 
@@ -122,6 +108,7 @@ docker logs invoicer_backend
 # MongoDB Configuration
 MONGO_INITDB_ROOT_USERNAME=invoicer_admin
 MONGO_INITDB_ROOT_PASSWORD=your_secure_mongo_password_here
+MONGODB_URI=mongodb://invoicer_admin:your_secure_mongo_password_here@mongodb:27017/invoicer?authSource=admin
 
 # JWT Secrets (generate with: openssl rand -hex 32)
 JWT_SECRET=your_jwt_secret_here
@@ -129,27 +116,9 @@ JWT_REFRESH_SECRET=your_jwt_refresh_secret_here
 
 # Environment
 NODE_ENV=development
-```
-
-### Backend Configuration (backend/.env)
-```ini
-# Server Configuration
-PORT=5000
-NODE_ENV=development
-
-# JWT Configuration (must match root .env)
-JWT_SECRET=your_jwt_secret_here
-JWT_REFRESH_SECRET=your_jwt_refresh_secret_here
-
-# Database (auto-constructed if not provided)
-# MONGODB_URI=mongodb://invoicer_admin:your_password@mongodb:27017/invoicer?authSource=admin
 
 # Redis Configuration
 REDIS_URL=redis://redis:6379
-
-# MongoDB Credentials (for auto-construction)
-MONGO_ROOT_USER=invoicer_admin
-MONGO_ROOT_PASSWORD=your_secure_mongo_password_here
 ```
 
 ## 🔧 Development Workflow
@@ -182,76 +151,53 @@ npm test
 ### Development vs Production
 
 **Development Mode:**
-- Uses `docker-compose.dev.yml`
-- Frontend runs on port 3000 with hot reload
-- Backend runs on port 5000 with nodemon
+- Uses `docker-compose.yml`
+- Application runs on port 3000 with hot reload
 - MongoDB and Redis exposed for debugging
 
 **Production Mode:**
-- Uses `docker-compose.yml`
+- Uses `docker-compose.prod.yml`
 - Frontend served by Nginx on port 80
-- Backend optimized build
+- Optimized build
 - Services not exposed externally except web interface
 
 ## 🏗️ Project Structure
 
 ```
-invoicer/
-├── backend/                 # Node.js/Express API
-│   ├── src/                # Source code
-│   ├── tests/              # Backend tests
-│   ├── Dockerfile          # Backend container config
-│   └── package.json        # Backend dependencies
-├── frontend/               # React application
-│   ├── src/               # Source code
-│   ├── public/            # Static assets
-│   ├── Dockerfile         # Frontend container config
-│   └── package.json       # Frontend dependencies
-├── docker-compose.yml     # Production configuration
-├── docker-compose.dev.yml # Development configuration
-├── .env.example          # Environment template
-└── package.json          # Root scripts and dev tools
-```
+Invoicer/
+├── src/
+│   ├── app/
+│   │   ├── api/
+│   │   │   ├── auth/[...nextauth]/route.ts    # NextAuth handler
+│   │   │   ├── auth/change-password/route.ts  # Password change
+│   │   │   ├── clients/[id]/route.ts          # Client CRUD
+│   │   │   ├── configuration/route.ts         # Config API
+│   │   │   ├── invoices/[id]/route.ts         # Invoice CRUD
+│   │   │   ├── profile/route.ts               # Profile API
+│   │   │   ├── projects/[id]/route.ts         # Project CRUD
+│   │   │   ├── users/[id]/route.ts            # User CRUD
+│   │   │   └── init/route.ts                  # Admin initialization
+│   │   ├── dashboard/
+│   │   │   ├── clients/                       # Client management
+│   │   │   ├── configuration/                 # Morocco/Generic config
+│   │   │   ├── invoices/[id]/                 # Invoice preview
+│   │   │   ├── profile/                       # User profile
+│   │   │   ├── projects/                      # Project management
+│   │   │   └── users/                         # User management
+│   │   ├── login/page.tsx                     # Login page
+│   │   ├── change-password/page.tsx           # Password change
+│   │   └── globals.css                        # Tailwind styles
+│   ├── components/
+│   │   ├── layout/                            # Sidebar, Header, Layout
+│   │   └── providers/                         # Session, Theme providers
+│   └── lib/
+│       ├── auth/                              # Auth utilities
+│       ├── db/                                # MongoDB, Redis connections
+│       └── models/                            # Mongoose models
+├── Docker files                               # Dockerfile, docker-compose
+├── nginx.conf                                 # Nginx config
+└── Configuration files                        # package.json, tailwind, etc.
 
-## 🔍 Troubleshooting
-
-### Common Issues
-
-**"Permission denied" errors:**
-```bash
-# Fix Docker permissions on Linux
-sudo chown -R $USER:$USER .
-sudo chmod -R 755 .
-```
-
-**Port already in use:**
-```bash
-# Check what's using the ports
-sudo lsof -i :80   # Frontend
-sudo lsof -i :5000 # Backend
-sudo lsof -i :27017 # MongoDB
-
-# Stop conflicting services or change ports in .env
-```
-
-**Database connection issues:**
-```bash
-# Check MongoDB container
-docker logs invoicer_mongodb
-
-# Restart with fresh database
-docker-compose down -v
-docker-compose up --build
-```
-
-**"Admin password not found":**
-```bash
-# Check backend logs for generated password
-docker logs invoicer_backend | grep "Password:"
-
-# If needed, reset by removing database volume
-docker-compose down -v
-docker-compose up --build
 ```
 
 ### Health Checks
@@ -261,13 +207,12 @@ docker-compose up --build
 docker-compose ps
 
 # Check individual service logs
-docker logs invoicer_frontend
-docker logs invoicer_backend
+docker logs invoicer
 docker logs invoicer_mongodb
 docker logs invoicer_redis
 
-# Test API health
-curl http://localhost:5000/status
+# Test app health
+curl http://localhost/api/status
 ```
 
 ## 🔐 Security Best Practices
@@ -283,7 +228,7 @@ curl http://localhost:5000/status
 ## 📊 API Documentation
 
 Interactive API documentation is available at `/api-docs` when the backend is running:
-- Development: http://localhost:5000/api-docs
+- Development: http://localhost:3000/api-docs
 
 ## 🤝 Contributing
 
@@ -294,6 +239,7 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 git clone https://github.com/MoroccanTea/invoicer.git
 cd invoicer
 npm install
+# Make sure docker is started
 npm run dev
 ```
 
@@ -309,15 +255,26 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🚀 Roadmap
 
+### Crucial Features
+- [x] Authentication with JWT
+- [ ] Invoice generation and management
+- [ ] Custom template upload [XLSX, DOCX]
+- [x] Client management
+- [ ] Tax calculations [VAT]
+- [ ] PDF export of invoices
+- [x] Fine-grained Administrative Role-Based Access Control [FARBAC]
 - [ ] Email notifications and reminders
-- [ ] Multi-language support (i18n)
+- [x] Multi-language support [Arabic, English, French, Spanish]
 - [ ] Two-factor authentication (2FA)
+- [x] Advanced reporting dashboard
+- [ ] Rate limiting
+- [x] Dark mode
+- [ ] Swagger API documentation
+
+### Optional Features
+- [ ] Client portal
 - [ ] Payment gateway integration
 - [ ] Mobile application
-- [ ] Advanced reporting dashboard
-- [ ] Client portal
-- [ ] API rate limiting enhancements
-- [ ] Automated testing pipeline
 
 ---
 

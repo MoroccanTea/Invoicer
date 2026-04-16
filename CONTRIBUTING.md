@@ -17,10 +17,10 @@ Our community is built on respect, inclusivity, and collaboration. We expect all
 ## 🚀 Quick Start for Contributors
 
 ### Prerequisites
-- [Docker](https://docs.docker.com/get-docker/) (version 20.10+)
-- [Docker Compose](https://docs.docker.com/compose/install/) (version 2.0+)
+- [Docker](https://docs.docker.com/get-docker/) (version 28.0+)
+- [Docker Compose](https://docs.docker.com/compose/install/) (version 2.40+)
 - [Git](https://git-scm.com/downloads)
-- [Node.js 18+](https://nodejs.org/) (for local development)
+- [Node.js 25+](https://nodejs.org/) (for local development)
 
 ### Setup Development Environment
 
@@ -40,9 +40,8 @@ nano backend/.env
 npm run dev
 
 # 5. Access the application
-# Frontend: http://localhost:3000
-# Backend: http://localhost:5000
-# API Docs: http://localhost:5000/api-docs
+# Application: http://localhost:3000
+# API Docs: http://localhost:3000/api-docs
 ```
 
 ## 🛠 Development Workflow
@@ -64,15 +63,12 @@ npm start                  # Start production environment
 npm stop                   # Stop production environment
 
 # Logs and monitoring
-npm run logs               # View all logs
-npm run logs:backend       # View backend logs only
-npm run logs:frontend      # View frontend logs only
+npm run logs               # View logs
 npm run health             # Check application health
 
 # Testing
 npm test                   # Run all tests
-npm run test:backend       # Run backend tests
-npm run test:frontend      # Run frontend tests
+npm run test               # Run application tests
 
 # Cleanup
 npm run clean              # Clean up containers and volumes
@@ -96,47 +92,44 @@ git rebase main
 ## 📁 Project Structure
 
 ```
-invoicer/
-├── backend/                 # Node.js/Express API
-│   ├── src/
-│   │   ├── controllers/     # Route controllers
-│   │   ├── models/         # MongoDB models
-│   │   ├── routes/         # API routes
-│   │   ├── middlewares/    # Custom middleware
-│   │   └── utils/          # Utility functions
-│   ├── tests/              # Backend tests
-│   └── Dockerfile          # Production container
-├── frontend/               # React application
-│   ├── src/
-│   │   ├── components/     # React components
-│   │   ├── context/        # React context
-│   │   ├── services/       # API services
-│   │   └── utils/          # Utility functions
-│   └── public/             # Static assets
-├── docker-compose.yml      # Production config
-├── docker-compose.dev.yml  # Development config
-└── .env.example           # Environment template
+Invoicer/
+├── src/
+│   ├── app/
+│   │   ├── api/
+│   │   │   ├── auth/[...nextauth]/route.ts    # NextAuth handler
+│   │   │   ├── auth/change-password/route.ts  # Password change
+│   │   │   ├── clients/[id]/route.ts          # Client CRUD
+│   │   │   ├── configuration/route.ts         # Config API
+│   │   │   ├── invoices/[id]/route.ts         # Invoice CRUD
+│   │   │   ├── profile/route.ts               # Profile API
+│   │   │   ├── projects/[id]/route.ts         # Project CRUD
+│   │   │   ├── users/[id]/route.ts            # User CRUD
+│   │   │   └── init/route.ts                  # Admin initialization
+│   │   ├── dashboard/
+│   │   │   ├── clients/                       # Client management
+│   │   │   ├── configuration/                 # Morocco/Generic config
+│   │   │   ├── invoices/[id]/                 # Invoice preview
+│   │   │   ├── profile/                       # User profile
+│   │   │   ├── projects/                      # Project management
+│   │   │   └── users/                         # User management
+│   │   ├── login/page.tsx                     # Login page
+│   │   ├── change-password/page.tsx           # Password change
+│   │   └── globals.css                        # Tailwind styles
+│   ├── components/
+│   │   ├── layout/                            # Sidebar, Header, Layout
+│   │   └── providers/                         # Session, Theme providers
+│   └── lib/
+│       ├── auth/                              # Auth utilities
+│       ├── db/                                # MongoDB, Redis connections
+│       └── models/                            # Mongoose models
+├── Docker files                               # Dockerfile, docker-compose
+├── nginx.conf                                 # Nginx config
+└── Configuration files                        # package.json, tailwind, etc.
 ```
 
 ## 🎯 Contribution Guidelines
 
 ### Code Style
-
-**Backend (Node.js/Express):**
-- Use async/await for asynchronous operations
-- Implement proper error handling with try/catch
-- Follow RESTful API conventions
-- Use meaningful variable and function names
-- Add JSDoc comments for functions
-- Validate input data using Joi schemas
-
-**Frontend (React):**
-- Use functional components with hooks
-- Implement proper prop validation
-- Keep components small and focused
-- Use Tailwind CSS for styling
-- Follow naming conventions (PascalCase for components)
-- Handle loading and error states
 
 **General Guidelines:**
 - Write clear, self-documenting code
@@ -146,28 +139,6 @@ invoicer/
 - Follow existing code patterns
 
 ### Testing Requirements
-
-**Backend Testing:**
-```bash
-# Run backend tests
-cd backend && npm test
-
-# Run with coverage
-cd backend && npm run test:coverage
-
-# Minimum coverage: 80%
-```
-
-**Frontend Testing:**
-```bash
-# Run frontend tests
-cd frontend && npm test
-
-# Run with coverage
-cd frontend && npm run test:coverage
-
-# Minimum coverage: 75%
-```
 
 **Test Guidelines:**
 - Write unit tests for new functions
@@ -256,25 +227,15 @@ Paste relevant logs here
 
 ## 🔧 Debugging
 
-### Backend Debugging
+### Application Debugging
 
 ```bash
-# View backend logs
-npm run logs:backend
+# View  logs
+npm run logs
 
 # Debug with Node.js inspector (development)
 # The backend exposes port 9229 for debugging
 # Connect your IDE or use Chrome DevTools
-```
-
-### Frontend Debugging
-
-```bash
-# View frontend logs
-npm run logs:frontend
-
-# React Developer Tools
-# Install browser extension for debugging React components
 ```
 
 ### Database Debugging

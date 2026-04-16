@@ -1,0 +1,137 @@
+{
+  "common": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "add": "Agregar",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "export": "Exportar",
+    "import": "Importar",
+    "loading": "Cargando...",
+    "confirm": "Confirmar",
+    "success": "Éxito",
+    "error": "Error",
+    "warning": "Advertencia",
+    "info": "Información"
+  },
+  "auth": {
+    "login": "Iniciar sesión",
+    "logout": "Cerrar sesión",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "currentPassword": "Contraseña actual",
+    "newPassword": "Nueva contraseña",
+    "confirmPassword": "Confirmar nueva contraseña",
+    "changePassword": "Cambiar contraseña",
+    "mustChangePassword": "Debe cambiar su contraseña antes de continuar",
+    "emailRequired": "El correo electrónico es obligatorio",
+    "passwordRequired": "La contraseña es obligatoria",
+    "signingIn": "Iniciando sesión...",
+    "welcomeBack": "¡Bienvenido de nuevo!",
+    "invalidCredentials": "Correo electrónico o contraseña inválidos",
+    "2fa": {
+      "title": "Autenticación de dos factores",
+      "enterCode": "Ingrese el código de 6 dígitos de su aplicación de autenticación",
+      "code": "Código de 6 dígitos",
+      "verify": "Verificar",
+      "verifying": "Verificando...",
+      "invalidCode": "Código inválido",
+      "setup": "Configurar 2FA",
+      "disable": "Desactivar 2FA",
+      "enabled": "2FA activado",
+      "disabled": "2FA desactivado",
+      "scanQR": "Escanee este código QR con su aplicación de autenticación",
+      "manualEntry": "O ingrese esta clave manualmente",
+      "backupCodes": "Códigos de respaldo",
+      "saveBackupCodes": "Guarde estos códigos de respaldo en un lugar seguro"
+    }
+  },
+  "dashboard": {
+    "title": "Panel de control",
+    "welcome": "Bienvenido a Invoicer",
+    "overview": "Resumen",
+    "statistics": "Estadísticas",
+    "recentActivity": "Actividad reciente"
+  },
+  "clients": {
+    "title": "Clientes",
+    "addClient": "Agregar cliente",
+    "editClient": "Editar cliente",
+    "deleteClient": "Eliminar cliente",
+    "clientName": "Nombre del cliente",
+    "clientDetails": "Detalles del cliente",
+    "noClients": "No se encontraron clientes"
+  },
+  "projects": {
+    "title": "Proyectos",
+    "addProject": "Agregar proyecto",
+    "editProject": "Editar proyecto",
+    "deleteProject": "Eliminar proyecto",
+    "projectName": "Nombre del proyecto",
+    "projectDetails": "Detalles del proyecto",
+    "noProjects": "No se encontraron proyectos"
+  },
+  "invoices": {
+    "title": "Facturas",
+    "addInvoice": "Agregar factura",
+    "editInvoice": "Editar factura",
+    "deleteInvoice": "Eliminar factura",
+    "invoiceNumber": "Número de factura",
+    "invoiceDetails": "Detalles de la factura",
+    "noInvoices": "No se encontraron facturas"
+  },
+  "users": {
+    "title": "Usuarios",
+    "addUser": "Agregar usuario",
+    "editUser": "Editar usuario",
+    "deleteUser": "Eliminar usuario",
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "role": "Rol",
+    "admin": "Administrador",
+    "manager": "Gerente",
+    "user": "Usuario"
+  },
+  "settings": {
+    "title": "Configuración",
+    "configuration": "Configuración",
+    "profile": "Perfil",
+    "security": "Seguridad",
+    "language": "Idioma",
+    "theme": "Tema",
+    "lightMode": "Modo claro",
+    "darkMode": "Modo oscuro",
+    "systemType": {
+      "title": "Tipo de sistema",
+      "morocco": "Marruecos",
+      "generic": "Genérico / Internacional",
+      "moroccoDesc": "Incluye campos ICE, IF, TP y TVA. Moneda establecida en MAD (Dirham).",
+      "genericDesc": "Configuración flexible para cualquier país. Elija su moneda y configuración fiscal."
+    }
+  },
+  "navigation": {
+    "dashboard": "Panel",
+    "clients": "Clientes",
+    "projects": "Proyectos",
+    "invoices": "Facturas",
+    "users": "Usuarios",
+    "settings": "Configuración",
+    "logout": "Cerrar sesión"
+  },
+  "passwordRequirements": {
+    "title": "Requisitos de contraseña",
+    "minLength": "Al menos 8 caracteres",
+    "uppercase": "Contiene letra mayúscula",
+    "lowercase": "Contiene letra minúscula",
+    "number": "Contiene número",
+    "match": "Las contraseñas coinciden"
+  },
+  "validation": {
+    "required": "Este campo es obligatorio",
+    "invalidEmail": "Correo electrónico inválido",
+    "minLength": "La longitud mínima es de {min} caracteres",
+    "maxLength": "La longitud máxima es de {max} caracteres"
+  }
+}

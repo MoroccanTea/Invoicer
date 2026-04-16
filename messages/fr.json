@@ -1,0 +1,137 @@
+{
+  "common": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "add": "Ajouter",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "export": "Exporter",
+    "import": "Importer",
+    "loading": "Chargement...",
+    "confirm": "Confirmer",
+    "success": "Succès",
+    "error": "Erreur",
+    "warning": "Avertissement",
+    "info": "Information"
+  },
+  "auth": {
+    "login": "Se connecter",
+    "logout": "Déconnexion",
+    "email": "Adresse e-mail",
+    "password": "Mot de passe",
+    "currentPassword": "Mot de passe actuel",
+    "newPassword": "Nouveau mot de passe",
+    "confirmPassword": "Confirmer le nouveau mot de passe",
+    "changePassword": "Changer le mot de passe",
+    "mustChangePassword": "Vous devez changer votre mot de passe avant de continuer",
+    "emailRequired": "L'e-mail est requis",
+    "passwordRequired": "Le mot de passe est requis",
+    "signingIn": "Connexion en cours...",
+    "welcomeBack": "Bon retour!",
+    "invalidCredentials": "E-mail ou mot de passe invalide",
+    "2fa": {
+      "title": "Authentification à deux facteurs",
+      "enterCode": "Entrez le code à 6 chiffres de votre application d'authentification",
+      "code": "Code à 6 chiffres",
+      "verify": "Vérifier",
+      "verifying": "Vérification...",
+      "invalidCode": "Code invalide",
+      "setup": "Configurer 2FA",
+      "disable": "Désactiver 2FA",
+      "enabled": "2FA activé",
+      "disabled": "2FA désactivé",
+      "scanQR": "Scannez ce code QR avec votre application d'authentification",
+      "manualEntry": "Ou entrez cette clé manuellement",
+      "backupCodes": "Codes de récupération",
+      "saveBackupCodes": "Enregistrez ces codes de récupération dans un endroit sûr"
+    }
+  },
+  "dashboard": {
+    "title": "Tableau de bord",
+    "welcome": "Bienvenue sur Invoicer",
+    "overview": "Aperçu",
+    "statistics": "Statistiques",
+    "recentActivity": "Activité récente"
+  },
+  "clients": {
+    "title": "Clients",
+    "addClient": "Ajouter un client",
+    "editClient": "Modifier le client",
+    "deleteClient": "Supprimer le client",
+    "clientName": "Nom du client",
+    "clientDetails": "Détails du client",
+    "noClients": "Aucun client trouvé"
+  },
+  "projects": {
+    "title": "Projets",
+    "addProject": "Ajouter un projet",
+    "editProject": "Modifier le projet",
+    "deleteProject": "Supprimer le projet",
+    "projectName": "Nom du projet",
+    "projectDetails": "Détails du projet",
+    "noProjects": "Aucun projet trouvé"
+  },
+  "invoices": {
+    "title": "Factures",
+    "addInvoice": "Ajouter une facture",
+    "editInvoice": "Modifier la facture",
+    "deleteInvoice": "Supprimer la facture",
+    "invoiceNumber": "Numéro de facture",
+    "invoiceDetails": "Détails de la facture",
+    "noInvoices": "Aucune facture trouvée"
+  },
+  "users": {
+    "title": "Utilisateurs",
+    "addUser": "Ajouter un utilisateur",
+    "editUser": "Modifier l'utilisateur",
+    "deleteUser": "Supprimer l'utilisateur",
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "role": "Rôle",
+    "admin": "Administrateur",
+    "manager": "Gestionnaire",
+    "user": "Utilisateur"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "configuration": "Configuration",
+    "profile": "Profil",
+    "security": "Sécurité",
+    "language": "Langue",
+    "theme": "Thème",
+    "lightMode": "Mode clair",
+    "darkMode": "Mode sombre",
+    "systemType": {
+      "title": "Type de système",
+      "morocco": "Maroc",
+      "generic": "Générique / International",
+      "moroccoDesc": "Inclut les champs ICE, IF, TP et TVA. Devise définie sur MAD (Dirham).",
+      "genericDesc": "Configuration flexible pour n'importe quel pays. Choisissez votre devise et vos paramètres fiscaux."
+    }
+  },
+  "navigation": {
+    "dashboard": "Tableau de bord",
+    "clients": "Clients",
+    "projects": "Projets",
+    "invoices": "Factures",
+    "users": "Utilisateurs",
+    "settings": "Paramètres",
+    "logout": "Déconnexion"
+  },
+  "passwordRequirements": {
+    "title": "Exigences du mot de passe",
+    "minLength": "Au moins 8 caractères",
+    "uppercase": "Contient une lettre majuscule",
+    "lowercase": "Contient une lettre minuscule",
+    "number": "Contient un chiffre",
+    "match": "Les mots de passe correspondent"
+  },
+  "validation": {
+    "required": "Ce champ est obligatoire",
+    "invalidEmail": "Adresse e-mail invalide",
+    "minLength": "La longueur minimale est de {min} caractères",
+    "maxLength": "La longueur maximale est de {max} caractères"
+  }
+}
