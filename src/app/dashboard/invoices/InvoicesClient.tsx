@@ -451,6 +451,9 @@ function InvoiceModal({
   onSave,
 }: InvoiceModalProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [applyTax, setApplyTax] = useState(
+    invoice ? invoice.taxRate > 0 : config.taxRate > 0
+  )
   const [formData, setFormData] = useState({
     project: invoice?.project?._id || '',
     category: invoice?.category || ('software_development' as ActivityCategory),
@@ -475,7 +478,8 @@ function InvoiceModal({
   const selectedProject = projects.find((p) => p._id === formData.project)
 
   const subtotal = items.reduce((sum, item) => sum + item.amount, 0)
-  const taxAmount = subtotal * (config.taxRate / 100)
+  const effectiveTaxRate = applyTax ? config.taxRate : 0
+  const taxAmount = subtotal * (effectiveTaxRate / 100)
   const total = subtotal + taxAmount
 
   const handleChange = (
@@ -536,7 +540,7 @@ function InvoiceModal({
       client: selectedProject?.client?._id,
       items,
       subtotal,
-      taxRate: config.taxRate,
+      taxRate: effectiveTaxRate,
       taxAmount,
       total,
     })
@@ -734,7 +738,19 @@ function InvoiceModal({
           </div>
 
           {/* Totals */}
-          <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-4">
+          <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-4 space-y-3">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={applyTax}
+                onChange={(e) => setApplyTax(e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300 text-primary-700 focus:ring-primary-500"
+              />
+              <span className="text-sm text-gray-700 dark:text-gray-300">
+                Apply {config.taxName} ({config.taxRate}%)
+              </span>
+            </label>
+
             <div className="space-y-2 text-right">
               <div className="flex justify-between">
                 <span className="text-gray-600 dark:text-gray-400">Subtotal (HT)</span>
@@ -742,17 +758,19 @@ function InvoiceModal({
                   {subtotal.toFixed(2)} {config.currencySymbol}
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">
-                  {config.taxName} ({config.taxRate}%)
-                </span>
-                <span className="font-medium">
-                  {taxAmount.toFixed(2)} {config.currencySymbol}
-                </span>
-              </div>
+              {applyTax && (
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">
+                    {config.taxName} ({config.taxRate}%)
+                  </span>
+                  <span className="font-medium">
+                    {taxAmount.toFixed(2)} {config.currencySymbol}
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between pt-2 border-t border-gray-200 dark:border-gray-600">
                 <span className="font-semibold text-gray-900 dark:text-white">
-                  Total (TTC)
+                  {applyTax ? 'Total (TTC)' : 'Total'}
                 </span>
                 <span className="font-bold text-lg text-primary-700 dark:text-primary-400">
                   {total.toFixed(2)} {config.currencySymbol}
@@ -763,7 +781,10 @@ function InvoiceModal({
 
           {/* Notes */}
           <div>
-            <label className="label">Notes</label>
+            <label className="label">
+              Notes{' '}
+              <span className="font-normal text-gray-400 dark:text-gray-500">(will appear on invoice)</span>
+            </label>
             <textarea
               name="notes"
               value={formData.notes}

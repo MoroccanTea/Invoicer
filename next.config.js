@@ -15,7 +15,7 @@ const nextConfig = {
       },
     ],
   },
-  serverExternalPackages: ['mongoose', 'bcryptjs', 'speakeasy', 'qrcode'],
+  serverExternalPackages: ['mongoose', 'bcryptjs', 'speakeasy', 'qrcode', '@react-pdf/renderer'],
 }
 
 module.exports = withNextIntl(nextConfig)

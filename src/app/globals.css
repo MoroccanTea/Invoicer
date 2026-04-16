@@ -13,6 +13,15 @@
 @layer base {
   html {
     font-family: 'Inter', system-ui, sans-serif;
+    --toast-bg: #ffffff;
+    --toast-color: #111827;
+    --toast-border: #e5e7eb;
+  }
+
+  html.dark {
+    --toast-bg: #1f2937;
+    --toast-color: #f9fafb;
+    --toast-border: #374151;
   }
 
   body {

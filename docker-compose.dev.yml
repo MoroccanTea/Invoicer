@@ -15,9 +15,9 @@ services:
       - /app/.next
     depends_on:
       mongodb:
-        condition: service_healthy
+        condition: service_started
       redis:
-        condition: service_healthy
+        condition: service_started
     networks:
       - invoicer-dev-network
 
@@ -45,21 +45,19 @@ services:
     container_name: invoicer_redis_dev
     restart: unless-stopped
     ports:
-      - "6379:6379"
-    command: redis-server --appendonly yes
-    volumes:
-      - redis_dev_data:/data
+      - "6380:6379"
+    command: redis-server --save "" --appendonly no
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
     networks:
       - invoicer-dev-network
 
 volumes:
   mongodb_dev_data:
-  redis_dev_data:
 
 networks:
   invoicer-dev-network:

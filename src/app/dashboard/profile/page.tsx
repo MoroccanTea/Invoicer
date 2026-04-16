@@ -50,7 +50,16 @@ export default function ProfilePage() {
       const response = await fetch('/api/profile')
       const data = await response.json()
       if (response.ok) {
-        setProfile(data)
+        setProfile({
+          firstName: data.firstName ?? '',
+          lastName: data.lastName ?? '',
+          email: data.email ?? '',
+          cnie: data.cnie ?? '',
+          phone: data.phone ?? '',
+          language: data.language ?? 'en',
+          notificationsEnabled: data.notificationsEnabled ?? false,
+          taxReminderEnabled: data.taxReminderEnabled ?? false,
+        })
       }
     } catch (error) {
       toast.error('Failed to load profile')

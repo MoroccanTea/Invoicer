@@ -40,8 +40,10 @@ export default function LanguageSwitcher() {
     setCurrentLocale(locale)
     setIsOpen(false)
 
-    // Refresh the page to apply new language
-    router.refresh()
+    // Full reload so the server re-reads the cookie and next-intl
+    // reinitialises its message context (router.refresh() only
+    // invalidates the RSC cache, it does not rebuild the provider tree)
+    window.location.reload()
   }
 
   return (

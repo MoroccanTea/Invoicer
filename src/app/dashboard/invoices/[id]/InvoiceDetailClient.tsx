@@ -433,11 +433,48 @@ export default function InvoiceDetailClient({
             left: 0;
             top: 0;
             width: 100%;
-            background: white !important;
-            color: black !important;
           }
           .no-print {
             display: none !important;
+          }
+          /* Force light mode for print regardless of current theme */
+          #invoice-preview {
+            background: #ffffff !important;
+            color: #111827 !important;
+          }
+          #invoice-preview * {
+            color: inherit !important;
+            background-color: transparent !important;
+            border-color: #e5e7eb !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          #invoice-preview h1,
+          #invoice-preview h2,
+          #invoice-preview h3,
+          #invoice-preview h4,
+          #invoice-preview p,
+          #invoice-preview span,
+          #invoice-preview td,
+          #invoice-preview th {
+            color: #111827 !important;
+          }
+          #invoice-preview .text-gray-500,
+          #invoice-preview .text-gray-600,
+          #invoice-preview .text-gray-400 {
+            color: #6b7280 !important;
+          }
+          #invoice-preview .text-primary-700 {
+            color: #1d4ed8 !important;
+          }
+          #invoice-preview .bg-gray-50,
+          #invoice-preview [class*="bg-gray-7"] {
+            background-color: #f9fafb !important;
+          }
+          #invoice-preview table,
+          #invoice-preview thead tr,
+          #invoice-preview tbody tr {
+            border-color: #e5e7eb !important;
           }
         }
       `}</style>

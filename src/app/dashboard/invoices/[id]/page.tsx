@@ -82,8 +82,9 @@ async function getData(id: string) {
 export default async function InvoiceDetailPage({
   params,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
+  const { id } = await params
   const session = await getServerSession(authOptions)
 
   if (
@@ -93,7 +94,7 @@ export default async function InvoiceDetailPage({
     redirect('/dashboard')
   }
 
-  const data = await getData(params.id)
+  const data = await getData(id)
 
   if (!data) {
     notFound()

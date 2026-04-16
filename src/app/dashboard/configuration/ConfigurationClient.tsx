@@ -528,7 +528,7 @@ export default function ConfigurationClient({ initialConfig, canEdit }: Props) {
                     value={config.currency}
                     onChange={handleCurrencyChange}
                     className="input-field"
-                    disabled={!canEdit || config.systemType === 'morocco'}
+                    disabled={!canEdit}
                   >
                     {CURRENCIES.map((currency) => (
                       <option key={currency.code} value={currency.code}>
@@ -547,7 +547,7 @@ export default function ConfigurationClient({ initialConfig, canEdit }: Props) {
                     onChange={handleChange}
                     className="input-field"
                     placeholder="e.g., TVA, VAT, Sales Tax"
-                    disabled={!canEdit || config.systemType === 'morocco'}
+                    disabled={!canEdit}
                   />
                 </div>
 
