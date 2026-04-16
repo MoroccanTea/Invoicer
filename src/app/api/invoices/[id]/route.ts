@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth/auth'
 import connectDB from '@/lib/db/mongoose'
 import Invoice from '@/lib/models/Invoice'
 import { logActivity } from '@/lib/models/ActivityLog'
+import { isValidObjectId, invalidIdResponse } from '@/lib/utils/objectId'
 
 export async function GET(
   request: NextRequest,
@@ -11,6 +12,9 @@ export async function GET(
 ) {
   try {
     const { id } = await params
+
+    if (!isValidObjectId(id)) return invalidIdResponse()
+
     const session = await getServerSession(authOptions)
 
     if (!session?.user?.id) {
@@ -77,6 +81,9 @@ export async function PUT(
 ) {
   try {
     const { id } = await params
+
+    if (!isValidObjectId(id)) return invalidIdResponse()
+
     const session = await getServerSession(authOptions)
 
     if (!session?.user?.id) {
@@ -171,6 +178,9 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
+
+    if (!isValidObjectId(id)) return invalidIdResponse()
+
     const session = await getServerSession(authOptions)
 
     if (!session?.user?.id) {

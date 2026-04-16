@@ -249,8 +249,8 @@ export default function DashboardClient({ stats }: Props) {
                       borderRadius: '8px',
                       color: '#fff',
                     }}
-                    formatter={(value: number | undefined) => [
-                      `${formatCurrency(value || 0)} ${stats.currencySymbol}`,
+                    formatter={(value) => [
+                      `${formatCurrency((value as number) || 0)} ${stats.currencySymbol}`,
                       'Revenue',
                     ]}
                   />
@@ -294,9 +294,9 @@ export default function DashboardClient({ stats }: Props) {
                       borderRadius: '8px',
                       color: '#fff',
                     }}
-                    formatter={(value: number | undefined, name: string | undefined, props: any) => [
-                      `${value || 0} invoices (${formatCurrency(props.payload.revenue || 0)} ${stats.currencySymbol})`,
-                      name || '',
+                    formatter={(value, name, props) => [
+                      `${(value as number) || 0} invoices (${formatCurrency((props as any).payload?.revenue || 0)} ${stats.currencySymbol})`,
+                      (name as string) || '',
                     ]}
                   />
                   <Legend

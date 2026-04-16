@@ -21,7 +21,7 @@ Invoicer is a comprehensive invoice management solution designed to streamline b
 
 ## 🛠 Technology Stack
 
-**Application**: NextJs 16.1.4, MongoDB, Redis
+**Application**: NextJs 16.2.4, MongoDB, Redis
 **Deployment**: Docker, Docker Compose, Nginx
 
 ## 📋 Prerequisites

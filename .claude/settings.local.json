@@ -5,7 +5,10 @@
       "Bash(npm run build:*)",
       "Bash(npm run docker:prod:*)",
       "Bash(docker compose:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(npm outdated:*)",
+      "Bash(npm audit:*)",
+      "Bash(npx tsc:*)"
     ]
   }
 }

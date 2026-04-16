@@ -77,10 +77,15 @@ export async function cacheDelete(key: string): Promise<void> {
 export async function cacheDeletePattern(pattern: string): Promise<void> {
   try {
     const client = getRedisClient()
-    const keys = await client.keys(pattern)
-    if (keys.length > 0) {
-      await client.del(...keys)
-    }
+    // Use SCAN instead of KEYS to avoid blocking the Redis server on large keyspaces
+    let cursor = '0'
+    do {
+      const [nextCursor, keys] = await client.scan(cursor, 'MATCH', pattern, 'COUNT', 100)
+      cursor = nextCursor
+      if (keys.length > 0) {
+        await client.del(...keys)
+      }
+    } while (cursor !== '0')
   } catch (error) {
     console.error('Redis cache delete pattern error:', error)
   }

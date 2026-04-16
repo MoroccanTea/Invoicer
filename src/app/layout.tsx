@@ -37,7 +37,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         <SessionProvider>
           <ThemeProvider>
             {children}

@@ -6,6 +6,7 @@ import Client from '@/lib/models/Client'
 import Project from '@/lib/models/Project'
 import Invoice from '@/lib/models/Invoice'
 import { logActivity } from '@/lib/models/ActivityLog'
+import { isValidObjectId, invalidIdResponse } from '@/lib/utils/objectId'
 
 export async function GET(
   request: NextRequest,
@@ -13,6 +14,9 @@ export async function GET(
 ) {
   try {
     const { id } = await params
+
+    if (!isValidObjectId(id)) return invalidIdResponse()
+
     const session = await getServerSession(authOptions)
 
     if (!session?.user?.id) {
@@ -47,6 +51,9 @@ export async function PUT(
 ) {
   try {
     const { id } = await params
+
+    if (!isValidObjectId(id)) return invalidIdResponse()
+
     const session = await getServerSession(authOptions)
 
     if (!session?.user?.id) {
@@ -89,7 +96,12 @@ export async function PUT(
       }
     }
 
-    Object.assign(client, body)
+    const allowedFields = ['name', 'ice', 'contactPerson', 'address', 'city', 'country', 'phone', 'email', 'notes', 'isActive'] as const
+    for (const field of allowedFields) {
+      if (body[field] !== undefined) {
+        (client as any)[field] = body[field]
+      }
+    }
     await client.save()
 
     // Log activity
@@ -125,6 +137,9 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
+
+    if (!isValidObjectId(id)) return invalidIdResponse()
+
     const session = await getServerSession(authOptions)
 
     if (!session?.user?.id) {

@@ -110,9 +110,16 @@ export const authOptions: NextAuthOptions = {
         token.language = user.language
       }
 
-      // Handle session updates (e.g., after password change)
+      // Handle session updates — only allow safe, non-privileged fields
       if (trigger === 'update' && session) {
-        return { ...token, ...session }
+        const allowedUpdateFields = ['mustChangePassword', 'firstName', 'lastName', 'language'] as const
+        const safeUpdates: Partial<typeof token> = {}
+        for (const field of allowedUpdateFields) {
+          if (field in session && session[field] !== undefined) {
+            (safeUpdates as any)[field] = session[field]
+          }
+        }
+        return { ...token, ...safeUpdates }
       }
 
       return token

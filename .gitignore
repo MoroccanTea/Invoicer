@@ -138,3 +138,6 @@ dist
 .pnp.*
 
 package-lock.json
+
+# AI
+.claude

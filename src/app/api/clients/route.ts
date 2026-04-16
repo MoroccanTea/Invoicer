@@ -26,14 +26,16 @@ export async function GET(request: NextRequest) {
     let query: any = {}
 
     if (search) {
+      // Escape all regex special characters to prevent ReDoS
+      const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
       query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { ice: { $regex: search, $options: 'i' } },
-        { contactPerson: { $regex: search, $options: 'i' } },
+        { name: { $regex: escapedSearch, $options: 'i' } },
+        { ice: { $regex: escapedSearch, $options: 'i' } },
+        { contactPerson: { $regex: escapedSearch, $options: 'i' } },
       ]
     }
 
-    if (active !== null) {
+    if (active !== null && active !== '') {
       query.isActive = active === 'true'
     }
 
@@ -85,8 +87,9 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const { name, ice, contactPerson, address, city, country, phone, email, notes, isActive } = body
     const client = await Client.create({
-      ...body,
+      name, ice, contactPerson, address, city, country, phone, email, notes, isActive,
       createdBy: session.user.id,
     })
 

@@ -63,8 +63,9 @@ export async function POST(request: NextRequest) {
 
     await connectDB()
 
+    const { name, description, client, status, startDate, endDate, budget, notes } = body
     const project = await Project.create({
-      ...body,
+      name, description, client, status, startDate, endDate, budget, notes,
       createdBy: session.user.id,
     })
 

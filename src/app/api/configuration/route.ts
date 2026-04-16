@@ -75,14 +75,32 @@ export async function PUT(request: NextRequest) {
       )
     }
 
+    const allowedFields = [
+      'systemType', 'businessName', 'businessAddress', 'businessCity', 'businessCountry',
+      'businessPostalCode', 'businessPhone', 'businessEmail', 'businessWebsite',
+      'ice', 'taxeProfessionnelle', 'identifiantFiscal', 'rc', 'cnss',
+      'bankName', 'bankAccountName', 'rib', 'iban', 'swift',
+      'currency', 'currencySymbol', 'taxRate', 'taxName',
+      'logo', 'digitalSignature', 'digitalStamp', 'primaryColor',
+      'invoicePrefix', 'invoiceFooterText', 'termsAndConditions', 'defaultPaymentTerms',
+      'taxReminderMonths', 'invoiceTemplate',
+    ] as const
+
+    const safeBody: Record<string, unknown> = {}
+    for (const field of allowedFields) {
+      if (body[field] !== undefined) {
+        safeBody[field] = body[field]
+      }
+    }
+
     // Update or create config
     let config = await Config.findOne()
 
     if (config) {
-      Object.assign(config, body, { isConfigured: true })
+      Object.assign(config, safeBody, { isConfigured: true })
       await config.save()
     } else {
-      config = await Config.create({ ...body, isConfigured: true })
+      config = await Config.create({ ...safeBody, isConfigured: true })
     }
 
     // Log activity

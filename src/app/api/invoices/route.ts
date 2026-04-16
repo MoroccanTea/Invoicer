@@ -70,12 +70,13 @@ export async function POST(request: NextRequest) {
 
     await connectDB()
 
+    const { project, client, category, billingType, items, subtotal, taxRate, taxAmount, total, issueDate, dueDate, notes, termsAndConditions } = body
+
     // Generate unique invoice number
-    const issueDate = new Date(body.issueDate)
-    const invoiceNumber = await getNextInvoiceNumber(body.category, issueDate)
+    const invoiceNumber = await getNextInvoiceNumber(category, new Date(issueDate))
 
     const invoice = await Invoice.create({
-      ...body,
+      project, client, category, billingType, items, subtotal, taxRate, taxAmount, total, issueDate, dueDate, notes, termsAndConditions,
       invoiceNumber,
       createdBy: session.user.id,
     })
