@@ -1,4 +1,12 @@
-// Shared styles injected into every template
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
 const base = (content: string, title: string) => `
 <!DOCTYPE html>
 <html lang="en">
@@ -58,48 +66,63 @@ export interface InvoiceEmailData {
 }
 
 export function invoiceCreatedTemplate(data: InvoiceEmailData): string {
+  const e = {
+    clientName: escapeHtml(data.clientName),
+    businessName: escapeHtml(data.businessName),
+    invoiceNumber: escapeHtml(data.invoiceNumber),
+    issueDate: escapeHtml(data.issueDate),
+    dueDate: escapeHtml(data.dueDate),
+    currencySymbol: escapeHtml(data.currencySymbol),
+  }
   return base(`
     <h2>New Invoice Created</h2>
-    <p>Hi ${data.clientName},</p>
-    <p>A new invoice has been issued by <strong>${data.businessName}</strong>. Please find the details below:</p>
+    <p>Hi ${e.clientName},</p>
+    <p>A new invoice has been issued by <strong>${e.businessName}</strong>. Please find the details below:</p>
     <div class="info-box">
       <table>
-        <tr><td>Invoice Number</td><td>${data.invoiceNumber}</td></tr>
-        <tr><td>Issue Date</td><td>${data.issueDate}</td></tr>
-        <tr><td>Due Date</td><td>${data.dueDate}</td></tr>
-        <tr><td>Amount Due</td><td>${data.total.toLocaleString('en-US', { minimumFractionDigits: 2 })} ${data.currencySymbol}</td></tr>
+        <tr><td>Invoice Number</td><td>${e.invoiceNumber}</td></tr>
+        <tr><td>Issue Date</td><td>${e.issueDate}</td></tr>
+        <tr><td>Due Date</td><td>${e.dueDate}</td></tr>
+        <tr><td>Amount Due</td><td>${data.total.toLocaleString('en-US', { minimumFractionDigits: 2 })} ${e.currencySymbol}</td></tr>
       </table>
     </div>
-    ${data.invoiceUrl ? `<a class="btn" href="${data.invoiceUrl}">View Invoice</a>` : ''}
+    ${data.invoiceUrl ? `<a class="btn" href="${escapeHtml(data.invoiceUrl)}">View Invoice</a>` : ''}
     <p style="font-size:13px;color:#6b7280;">If you have any questions about this invoice, please contact us directly.</p>
-  `, `Invoice ${data.invoiceNumber}`)
+  `, `Invoice ${e.invoiceNumber}`)
 }
 
 export function paymentReminderTemplate(data: InvoiceEmailData & { daysOverdue: number }): string {
+  const e = {
+    clientName: escapeHtml(data.clientName),
+    businessName: escapeHtml(data.businessName),
+    invoiceNumber: escapeHtml(data.invoiceNumber),
+    dueDate: escapeHtml(data.dueDate),
+    currencySymbol: escapeHtml(data.currencySymbol),
+  }
   const isOverdue = data.daysOverdue > 0
   const badge = isOverdue
     ? `<span class="badge badge-overdue">${data.daysOverdue} day${data.daysOverdue !== 1 ? 's' : ''} overdue</span>`
-    : `<span class="badge badge-pending">Due ${data.dueDate}</span>`
+    : `<span class="badge badge-pending">Due ${e.dueDate}</span>`
 
   return base(`
     <h2>Payment Reminder ${badge}</h2>
-    <p>Hi ${data.clientName},</p>
+    <p>Hi ${e.clientName},</p>
     <p>
       ${isOverdue
-        ? `This is a friendly reminder that invoice <strong>${data.invoiceNumber}</strong> from <strong>${data.businessName}</strong> is now <strong>${data.daysOverdue} day${data.daysOverdue !== 1 ? 's' : ''} overdue</strong>.`
-        : `This is a reminder that invoice <strong>${data.invoiceNumber}</strong> from <strong>${data.businessName}</strong> is due on <strong>${data.dueDate}</strong>.`
+        ? `This is a friendly reminder that invoice <strong>${e.invoiceNumber}</strong> from <strong>${e.businessName}</strong> is now <strong>${data.daysOverdue} day${data.daysOverdue !== 1 ? 's' : ''} overdue</strong>.`
+        : `This is a reminder that invoice <strong>${e.invoiceNumber}</strong> from <strong>${e.businessName}</strong> is due on <strong>${e.dueDate}</strong>.`
       }
     </p>
     <div class="info-box">
       <table>
-        <tr><td>Invoice Number</td><td>${data.invoiceNumber}</td></tr>
-        <tr><td>Due Date</td><td>${data.dueDate}</td></tr>
-        <tr><td>Amount Due</td><td>${data.total.toLocaleString('en-US', { minimumFractionDigits: 2 })} ${data.currencySymbol}</td></tr>
+        <tr><td>Invoice Number</td><td>${e.invoiceNumber}</td></tr>
+        <tr><td>Due Date</td><td>${e.dueDate}</td></tr>
+        <tr><td>Amount Due</td><td>${data.total.toLocaleString('en-US', { minimumFractionDigits: 2 })} ${e.currencySymbol}</td></tr>
       </table>
     </div>
-    ${data.invoiceUrl ? `<a class="btn" href="${data.invoiceUrl}">View Invoice</a>` : ''}
+    ${data.invoiceUrl ? `<a class="btn" href="${escapeHtml(data.invoiceUrl)}">View Invoice</a>` : ''}
     <p style="font-size:13px;color:#6b7280;">If you have already settled this payment, please disregard this message.</p>
-  `, `Payment Reminder — ${data.invoiceNumber}`)
+  `, `Payment Reminder — ${e.invoiceNumber}`)
 }
 
 export interface TaxReminderEmailData {
@@ -110,17 +133,22 @@ export interface TaxReminderEmailData {
 }
 
 export function taxReminderTemplate(data: TaxReminderEmailData): string {
+  const e = {
+    firstName: escapeHtml(data.firstName),
+    quarter: escapeHtml(data.quarter),
+    deadlineDate: escapeHtml(data.deadlineDate),
+  }
   return base(`
-    <h2>Tax Payment Reminder — ${data.quarter} ${data.year}</h2>
-    <p>Hi ${data.firstName},</p>
+    <h2>Tax Payment Reminder — ${e.quarter} ${data.year}</h2>
+    <p>Hi ${e.firstName},</p>
     <p>
-      This is your quarterly tax payment reminder. Your <strong>${data.quarter} ${data.year}</strong> tax
-      declaration and payment is due by <strong>${data.deadlineDate}</strong>.
+      This is your quarterly tax payment reminder. Your <strong>${e.quarter} ${data.year}</strong> tax
+      declaration and payment is due by <strong>${e.deadlineDate}</strong>.
     </p>
     <div class="info-box">
       <table>
-        <tr><td>Period</td><td>${data.quarter} ${data.year}</td></tr>
-        <tr><td>Deadline</td><td>${data.deadlineDate}</td></tr>
+        <tr><td>Period</td><td>${e.quarter} ${data.year}</td></tr>
+        <tr><td>Deadline</td><td>${e.deadlineDate}</td></tr>
       </table>
     </div>
     <p>Please review your invoices for this quarter and prepare your declaration in time.</p>
@@ -128,7 +156,7 @@ export function taxReminderTemplate(data: TaxReminderEmailData): string {
       This reminder was sent because you have tax reminders enabled in your profile settings.
       You can disable them at any time from your profile page.
     </p>
-  `, `Tax Reminder — ${data.quarter} ${data.year}`)
+  `, `Tax Reminder — ${e.quarter} ${data.year}`)
 }
 
 export interface TwoFACodeEmailData {
@@ -138,12 +166,12 @@ export interface TwoFACodeEmailData {
 
 export function twoFABackupCodesTemplate(data: TwoFACodeEmailData): string {
   const codeRows = data.backupCodes
-    .map(c => `<tr><td style="font-family:monospace;font-size:15px;letter-spacing:2px;padding:4px 0;">${c}</td></tr>`)
+    .map(c => `<tr><td style="font-family:monospace;font-size:15px;letter-spacing:2px;padding:4px 0;">${escapeHtml(c)}</td></tr>`)
     .join('')
 
   return base(`
     <h2>Your 2FA Backup Codes</h2>
-    <p>Hi ${data.firstName},</p>
+    <p>Hi ${escapeHtml(data.firstName)},</p>
     <p>
       Two-factor authentication has been <strong>enabled</strong> on your account.
       Below are your one-time backup codes. Each code can only be used once.

@@ -64,7 +64,6 @@ export default function LoginPage() {
 
     try {
       if (useBackupCode) {
-        // Verify backup code via API, then complete sign-in
         const res = await fetch('/api/auth/2fa/backup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -75,14 +74,11 @@ export default function LoginPage() {
           toast.error(data.error || 'Invalid backup code')
           return
         }
-        // Backup code valid — now complete the sign-in with a sentinel TOTP code
-        // We use a special bypass token; the backup route already authenticated the user.
-        // Complete sign-in by re-signing with credentials (no 2FA check needed now).
-        // To avoid re-checking 2FA we temporarily disable it via the bypass header.
+        // Use the server-issued nonce to complete sign-in
         const signInResult = await signIn('credentials', {
           email,
           password,
-          totpCode: '__BACKUP_VERIFIED__',
+          totpCode: data.nonce,
           redirect: false,
         })
         if (signInResult?.error) {

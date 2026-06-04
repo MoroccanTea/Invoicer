@@ -14,6 +14,7 @@ export interface IClient extends Document {
   contactEmail?: string
   contactPhone?: string
   notes?: string
+  notificationsEnabled: boolean
   isActive: boolean
   createdBy: mongoose.Types.ObjectId
   createdAt: Date
@@ -84,6 +85,10 @@ const clientSchema = new Schema<IClient>(
       type: String,
       trim: true,
       maxlength: [1000, 'Notes cannot exceed 1000 characters'],
+    },
+    notificationsEnabled: {
+      type: Boolean,
+      default: false,
     },
     isActive: {
       type: Boolean,

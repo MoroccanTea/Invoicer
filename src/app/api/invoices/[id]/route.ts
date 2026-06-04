@@ -106,6 +106,23 @@ export async function PUT(
 
     const oldStatus = invoice.status
 
+    // Validate status transitions
+    if (body.status && body.status !== oldStatus) {
+      const validTransitions: Record<string, string[]> = {
+        pending: ['paid_pending_taxes', 'all_paid', 'cancelled'],
+        paid_pending_taxes: ['all_paid', 'cancelled'],
+        all_paid: [],
+        cancelled: ['pending'],
+      }
+      const allowed = validTransitions[oldStatus] || []
+      if (!allowed.includes(body.status)) {
+        return NextResponse.json(
+          { error: `Cannot transition from "${oldStatus}" to "${body.status}"` },
+          { status: 400 }
+        )
+      }
+    }
+
     // Update allowed fields
     const allowedFields = [
       'status',

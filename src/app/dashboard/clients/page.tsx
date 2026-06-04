@@ -9,6 +9,7 @@ async function getClients() {
   await connectDB()
   const clients = await Client.find()
     .sort({ createdAt: -1 })
+    .limit(200)
     .lean()
 
   return clients.map((client) => ({

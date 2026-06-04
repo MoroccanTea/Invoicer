@@ -96,7 +96,7 @@ export async function PUT(
       }
     }
 
-    const allowedFields = ['name', 'ice', 'contactPerson', 'address', 'city', 'country', 'phone', 'email', 'notes', 'isActive'] as const
+    const allowedFields = ['name', 'ice', 'contactPerson', 'address', 'city', 'country', 'phone', 'email', 'notes', 'notificationsEnabled', 'isActive'] as const
     for (const field of allowedFields) {
       if (body[field] !== undefined) {
         (client as any)[field] = body[field]

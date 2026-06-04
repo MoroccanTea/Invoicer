@@ -15,6 +15,7 @@ async function getData() {
       .populate('project', 'name')
       .populate('client', 'name ice')
       .sort({ createdAt: -1 })
+      .limit(200)
       .lean(),
     Project.find({ status: 'active' })
       .populate('client', 'name ice')

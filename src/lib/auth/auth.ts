@@ -4,6 +4,8 @@ import connectDB from '@/lib/db/mongoose'
 import User, { IUser } from '@/lib/models/User'
 import { logActivity } from '@/lib/models/ActivityLog'
 import { initializeAdmin } from './initAdmin'
+import { getRedisClient } from '@/lib/db/redis'
+import { checkRateLimit } from '@/lib/rateLimit'
 import speakeasy from 'speakeasy'
 
 declare module 'next-auth' {
@@ -59,6 +61,12 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Email and password are required')
         }
 
+        // Rate limit: 10 attempts per 15 minutes per email
+        const rl = await checkRateLimit(`login:${credentials.email.toLowerCase()}`, 10, 900)
+        if (!rl.allowed) {
+          throw new Error(`Too many login attempts. Try again in ${rl.retryAfterSeconds} seconds`)
+        }
+
         await connectDB()
 
         // Auto-initialize admin on first login attempt if no admin exists
@@ -79,16 +87,29 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Invalid email or password')
         }
 
-        // 2FA check — if enabled, require a valid TOTP code
+        // 2FA check — if enabled, require a valid TOTP code or backup nonce
         if (user.twoFactorEnabled) {
           if (!credentials.totpCode) {
-            // Signal to the login page that 2FA is required
             throw new Error('TWO_FACTOR_REQUIRED')
           }
 
-          // '__BACKUP_VERIFIED__' means the backup code was already consumed
-          // by the /api/auth/2fa/backup endpoint in this same request cycle
-          if (credentials.totpCode !== '__BACKUP_VERIFIED__') {
+          // Check if this is a backup-code nonce issued by /api/auth/2fa/backup
+          let backupVerified = false
+          if (credentials.totpCode.length === 64) {
+            try {
+              const redis = getRedisClient()
+              const redisKey = `2fa_backup_nonce:${user._id}`
+              const storedNonce = await redis.get(redisKey)
+              if (storedNonce && storedNonce === credentials.totpCode) {
+                await redis.del(redisKey)
+                backupVerified = true
+              }
+            } catch {
+              // Redis failure — fall through to TOTP verification
+            }
+          }
+
+          if (!backupVerified) {
             const verified = speakeasy.totp.verify({
               secret: user.twoFactorSecret!,
               encoding: 'base32',

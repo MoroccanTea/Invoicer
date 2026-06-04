@@ -13,6 +13,7 @@ async function getData() {
     Project.find()
       .populate('client', 'name ice')
       .sort({ createdAt: -1 })
+      .limit(200)
       .lean(),
     Client.find({ isActive: true }).select('name ice').sort({ name: 1 }).lean(),
   ])

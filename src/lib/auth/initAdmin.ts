@@ -2,13 +2,17 @@ import connectDB from '@/lib/db/mongoose'
 import User from '@/lib/models/User'
 import crypto from 'crypto'
 
+let adminInitialized = false
+
 export async function initializeAdmin(): Promise<{ email: string; password: string } | null> {
+  if (adminInitialized) return null
+
   await connectDB()
 
-  // Check if any admin exists
   const adminExists = await User.findOne({ role: 'admin' })
 
   if (adminExists) {
+    adminInitialized = true
     return null
   }
 
@@ -27,6 +31,7 @@ export async function initializeAdmin(): Promise<{ email: string; password: stri
   })
 
   await admin.save()
+  adminInitialized = true
 
   console.log('='.repeat(60))
   console.log('INITIAL ADMIN CREDENTIALS')

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import connectDB from '@/lib/db/mongoose'
 import User from '@/lib/models/User'
 import crypto from 'crypto'
+import { getRedisClient } from '@/lib/db/redis'
+import { checkRateLimit } from '@/lib/rateLimit'
 
 /**
  * @openapi
@@ -27,7 +29,7 @@ import crypto from 'crypto'
  *                 description: One of the 8 backup codes shown when 2FA was enabled
  *     responses:
  *       200:
- *         description: Backup code valid — proceed with signIn
+ *         description: Backup code valid — returns a one-time nonce to complete sign-in
  *       400:
  *         description: Invalid backup code
  *       404:
@@ -39,6 +41,15 @@ export async function POST(request: NextRequest) {
 
   if (!email || !password || !backupCode) {
     return NextResponse.json({ error: 'email, password, and backupCode are required' }, { status: 400 })
+  }
+
+  // Rate limit: 5 backup attempts per 15 minutes per email
+  const rl = await checkRateLimit(`backup:${email.toLowerCase()}`, 5, 900)
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: `Too many attempts. Try again in ${rl.retryAfterSeconds} seconds` },
+      { status: 429 }
+    )
   }
 
   await connectDB()
@@ -70,5 +81,10 @@ export async function POST(request: NextRequest) {
   user.twoFactorBackupCodes.splice(index, 1)
   await user.save()
 
-  return NextResponse.json({ valid: true, codesRemaining: user.twoFactorBackupCodes.length })
+  // Generate a one-time nonce stored server-side (60s TTL)
+  const nonce = crypto.randomBytes(32).toString('hex')
+  const redis = getRedisClient()
+  await redis.set(`2fa_backup_nonce:${user._id}`, nonce, 'EX', 60)
+
+  return NextResponse.json({ valid: true, nonce, codesRemaining: user.twoFactorBackupCodes.length })
 }

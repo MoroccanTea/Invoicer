@@ -22,6 +22,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status')
     const client = searchParams.get('client')
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10))
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)))
 
     let query: any = {}
 
@@ -33,11 +35,20 @@ export async function GET(request: NextRequest) {
       query.client = client
     }
 
-    const projects = await Project.find(query)
-      .populate('client', 'name ice')
-      .sort({ createdAt: -1 })
+    const [projects, total] = await Promise.all([
+      Project.find(query)
+        .populate('client', 'name ice')
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean(),
+      Project.countDocuments(query),
+    ])
 
-    return NextResponse.json(projects)
+    return NextResponse.json({
+      projects,
+      pagination: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    })
   } catch (error: any) {
     console.error('Get projects error:', error)
     return NextResponse.json(

@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth/auth'
 import connectDB from '@/lib/db/mongoose'
 import User from '@/lib/models/User'
 import { logActivity } from '@/lib/models/ActivityLog'
+import { checkRateLimit } from '@/lib/rateLimit'
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,6 +20,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Current password and new password are required' },
         { status: 400 }
+      )
+    }
+
+    // Rate limit: 5 password change attempts per 15 minutes
+    const rl = await checkRateLimit(`change_pwd:${session.user.id}`, 5, 900)
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: `Too many attempts. Try again in ${rl.retryAfterSeconds} seconds` },
+        { status: 429 }
       )
     }
 

@@ -13,6 +13,10 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    if (session.user.role !== 'admin' && !session.user.permissions?.configuration?.view) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     await connectDB()
 
     let config = await Config.findOne()

@@ -10,6 +10,7 @@ async function getUsers() {
   const users = await User.find()
     .select('-password')
     .sort({ createdAt: -1 })
+    .limit(200)
     .lean()
 
   return users.map((user) => ({

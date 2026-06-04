@@ -22,11 +22,12 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const search = searchParams.get('search')
     const active = searchParams.get('active')
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10))
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)))
 
     let query: any = {}
 
     if (search) {
-      // Escape all regex special characters to prevent ReDoS
       const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
       query.$or = [
         { name: { $regex: escapedSearch, $options: 'i' } },
@@ -39,9 +40,15 @@ export async function GET(request: NextRequest) {
       query.isActive = active === 'true'
     }
 
-    const clients = await Client.find(query).sort({ createdAt: -1 })
+    const [clients, total] = await Promise.all([
+      Client.find(query).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).lean(),
+      Client.countDocuments(query),
+    ])
 
-    return NextResponse.json(clients)
+    return NextResponse.json({
+      clients,
+      pagination: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    })
   } catch (error: any) {
     console.error('Get clients error:', error)
     return NextResponse.json(
@@ -87,9 +94,9 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const { name, ice, contactPerson, address, city, country, phone, email, notes, isActive } = body
+    const { name, ice, contactPerson, address, city, country, phone, email, notes, notificationsEnabled, isActive } = body
     const client = await Client.create({
-      name, ice, contactPerson, address, city, country, phone, email, notes, isActive,
+      name, ice, contactPerson, address, city, country, phone, email, notes, notificationsEnabled, isActive,
       createdBy: session.user.id,
     })
 

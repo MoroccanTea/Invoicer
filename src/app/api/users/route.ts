@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
 
     await connectDB()
 
-    const users = await User.find().select('-password').sort({ createdAt: -1 })
+    const users = await User.find().select('-password').sort({ createdAt: -1 }).limit(200).lean()
 
     return NextResponse.json(users)
   } catch (error: any) {
@@ -61,9 +61,13 @@ export async function POST(request: NextRequest) {
     const tempPassword = crypto.randomBytes(8).toString('base64').slice(0, 12)
 
     const user = await User.create({
-      ...body,
       email: body.email.toLowerCase(),
       password: tempPassword,
+      firstName: body.firstName,
+      lastName: body.lastName,
+      role: body.role,
+      permissions: body.permissions,
+      isActive: body.isActive ?? true,
       mustChangePassword: true,
     })
 
